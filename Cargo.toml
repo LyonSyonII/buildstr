@@ -1,0 +1,2 @@
+[workspace]
+members = ["buildstr_derive", "buildstr"]
