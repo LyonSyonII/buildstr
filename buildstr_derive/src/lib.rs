@@ -1,18 +1,6 @@
 use proc_macro::TokenStream;
 
 #[cfg(feature = "derive")]
-fn add_trait_bounds(mut generics: syn::Generics) -> syn::Generics {
-    for param in &mut generics.params {
-        if let syn::GenericParam::Type(ref mut type_param) = *param {
-            type_param
-                .bounds
-                .push(syn::parse_quote!(buildstr::BuildStr));
-        }
-    }
-    generics
-}
-
-#[cfg(feature = "derive")]
 #[proc_macro_derive(BuildStr)]
 pub fn buildstr(input: TokenStream) -> TokenStream {
     use syn::spanned::Spanned;
@@ -21,7 +9,17 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
 
     let name = input.ident;
-    let generics = add_trait_bounds(input.generics);
+    let generics = {
+        let mut generics = input.generics;
+        for param in &mut generics.params {
+            if let syn::GenericParam::Type(ref mut type_param) = *param {
+                type_param
+                    .bounds
+                    .push(syn::parse_quote!(buildstr::BuildStr));
+            }
+        }
+        generics
+    };
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let body = match input.data {
@@ -29,12 +27,12 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
             syn::Fields::Named(ref fields) => {
                 let fields = fields.named.iter().map(|field| {
                     let name = &field.ident;
-                    quote::quote_spanned! {field.span()=>
+                    quote_spanned! {field.span()=>
                         format!("{}:{},", stringify!(#name), self.#name.to_build_string())
                     }
                 });
 
-                quote::quote! {
+                quote! {
                     let mut s = format!("{}{{", stringify!(#name));
                     #(s.push_str(&#fields);)*
                     s.push('}');
@@ -57,16 +55,70 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
             }
             syn::Fields::Unit => {
                 quote! {
-                    impl BuildStr for #name {
-                        fn to_build_string(&self) -> String {
-                            format!("{}", #name)
-                        }
-                    }
+                    stringify!(#name).into()
                 }
             }
         },
         syn::Data::Enum(e) => {
-            todo!()
+            enum Verdures {
+                Patata,
+                Coliflor(usize),
+                Pastanaga(u8, u8, u8),
+                Tomata {
+                    quantitat: usize,
+                    color: (u8, u8, u8)
+                }
+            }
+            let variants = e.variants.iter().map(|v| {
+                let variant = &v.ident;
+                match v.fields {
+                    syn::Fields::Named(ref fields) => {
+                        let fields = fields.named.iter().map(|field| {
+                            &field.ident
+                        }).collect::<Vec<_>>();
+        
+                        quote! {
+                            #name::#variant { #(#fields),* } => {
+                                let mut s = format!("{}::{}{{", stringify!(#name), stringify!(#variant));
+                                #(
+                                    let f = format!("{}:{},", stringify!(#fields), #fields.to_build_string());
+                                    s.push_str(&f);
+                                )*
+                                s.push('}');
+                                s
+                            }
+                        }
+                    },
+                    syn::Fields::Unnamed(ref fields) => {
+                        let fields = fields.unnamed.iter().enumerate().map(|(i, _)| {
+                            syn::parse_str::<syn::Ident>(&format!("_{i}")).unwrap()
+                        }).collect::<Vec<_>>();
+
+                        let vars = quote! {
+                            #(#fields),*
+                        };
+                        quote! {
+                            #name::#variant(#vars) => {
+                                let mut s = format!("{}::{}(", stringify!(#name), stringify!(#variant));
+                                #(
+                                    s.push_str(&#fields.to_build_string());
+                                    s.push(',');
+                                )*
+                                s.push(')');
+                                s
+                            }
+                        }
+                    }
+                    syn::Fields::Unit => quote! {
+                        #name::#variant => format!("{}::{}", stringify!(#name), stringify!(#variant)),
+                    },
+                }
+            });
+            quote! {
+                match self {
+                    #(#variants)*
+                }
+            }
         }
         syn::Data::Union(u) => todo!(),
     };
