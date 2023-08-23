@@ -6,8 +6,32 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-quote = "1.0.33"
-syn = "2.0.29"
+quote = { version = "1.0.33", optional = true }
+syn = { version = "2.0.29", optional = true }
+prettier-please = { version = "0.2.0", optional = true }
+
+[features]
+default = ["prelude", "collections", "derive"]
+derive = ["quote", "syn"]
+
+pretty = []
+
+prelude = ["vec", "reference", "array", "tuple", "option", "result", "box"]
+reference = []
+vec = []
+array = []
+tuple = []
+string = []
+option = []
+result = []
+box = []
+
+collections = ["btree"]
+btree = []
+
+[dev-dependencies]
+num-bigint = "0.4.4"
+buildstr = { version = "0.1.0", path = "../buildstr" }
 
 [lib]
 proc-macro = true
