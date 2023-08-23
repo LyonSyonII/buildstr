@@ -2,6 +2,28 @@ use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 
+/// Derives the `BuildStr` trait for a `struct` or `enum`.
+/// 
+/// All types in the struct must have an associated function called `to_build_string`.<br>
+/// This function is already implemented for all std types.
+/// 
+/// *If the function is not available, check that you have enabled the corresponding feature.*
+/// 
+/// To implement it for foreign types, use [`impl_buildstr!`](crate::impl_buildstr).
+/// 
+/// # Examples
+/// ```
+/// use buildstr::BuildStr;
+/// use buildstr::derive::BuildStr;
+/// 
+/// #[derive(BuildStr)]
+/// struct Person {
+///     name: String,
+///     surname: &'static str,    
+///     initial: char,
+///     age: u8,
+///     is_human: bool,
+/// }
 #[cfg(feature = "derive")]
 #[proc_macro_derive(BuildStr)]
 pub fn buildstr(input: TokenStream) -> TokenStream {
@@ -163,7 +185,62 @@ fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStr
 pub fn impl_buildstr(input: TokenStream) -> TokenStream {
     let name = input.to_string();
     let mut out = stringify! {
+        /// Trait for getting a string representation of the builder of a type.
+        /// 
+        /// Supports all std types, arbitrary structs and enums.<br>
+        /// Unions are *not* supported, you must implement `BuildStr` manually.
+        /// 
+        /// Useful for macros that generate values at compile time, like parsers.
+        /// 
+        /// If you want a pretty output, check the [`Pretty`](crate::Pretty) trait.
+        /// 
+        /// To implement it for foreign types, use [`impl_buildstr!`](crate::impl_buildstr).
+        /// 
+        /// # Examples
+        /// ```
+        /// use buildstr::BuildStr;
+        /// use buildstr::derive::BuildStr;
+        /// 
+        /// #[derive(BuildStr)]
+        /// struct Person {
+        ///     name: String,
+        ///     age: u8,
+        ///     balance: f64,
+        /// }
+        /// 
+        /// let person = Person {
+        ///     name: "John".to_string(),
+        ///     age: 30,
+        ///     balance: 1000.   
+        /// }
+        /// assert_eq!(person.to_build_string(), "Person{name:String::from(\"John\"),age:30u8,balance: 1000.0f64}");
+        /// ```
         pub trait BuildStr {
+            /// Trait for getting a string representation of the builder of a type.
+            /// 
+            /// Useful for macros that generate values at compile time, like parsers.
+            /// 
+            /// If you want a pretty output, check the [`Pretty`](crate::Pretty) trait.
+            /// 
+            /// # Examples
+            /// ```
+            /// use buildstr::BuildStr;
+            /// use buildstr::derive::BuildStr;
+            /// 
+            /// #[derive(BuildStr)]
+            /// struct Person {
+            ///     name: String,
+            ///     age: u8,
+            ///     balance: f64,
+            /// }
+            /// 
+            /// let person = Person {
+            ///     name: "John".to_string(),
+            ///     age: 30,
+            ///     balance: 1000.   
+            /// }
+            /// assert_eq!(person.to_build_string(), "Person{name:String::from(\"John\"),age:30u8,balance: 1000.0f64}");
+            /// ```
             fn to_build_string(&self) -> String;
         }
     }
