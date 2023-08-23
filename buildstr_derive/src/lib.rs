@@ -1,11 +1,10 @@
 use proc_macro::TokenStream;
+use quote::{quote, quote_spanned};
+use syn::spanned::Spanned;
 
 #[cfg(feature = "derive")]
 #[proc_macro_derive(BuildStr)]
 pub fn buildstr(input: TokenStream) -> TokenStream {
-    use syn::spanned::Spanned;
-    use quote::{quote, quote_spanned};
-
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
 
     let name = input.ident;
@@ -23,103 +22,8 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let body = match input.data {
-        syn::Data::Struct(ref s) => match s.fields {
-            syn::Fields::Named(ref fields) => {
-                let fields = fields.named.iter().map(|field| {
-                    let name = &field.ident;
-                    quote_spanned! {field.span()=>
-                        format!("{}:{},", stringify!(#name), self.#name.to_build_string())
-                    }
-                });
-
-                quote! {
-                    let mut s = format!("{}{{", stringify!(#name));
-                    #(s.push_str(&#fields);)*
-                    s.push('}');
-                    s
-                }
-            }
-            syn::Fields::Unnamed(ref fields) => {
-                let fields = fields.unnamed.iter().enumerate().map(|(i, field)| {
-                    let name = syn::Index::from(i);
-                    quote_spanned! {field.span()=>
-                        format!("{},", self.#name.to_build_string())
-                    }
-                });
-                quote! {
-                    let mut s = format!("{}(", stringify!(#name));
-                    #(s.push_str(&#fields);)*
-                    s.push(')');
-                    s
-                }
-            }
-            syn::Fields::Unit => {
-                quote! {
-                    stringify!(#name).into()
-                }
-            }
-        },
-        syn::Data::Enum(e) => {
-            enum Verdures {
-                Patata,
-                Coliflor(usize),
-                Pastanaga(u8, u8, u8),
-                Tomata {
-                    quantitat: usize,
-                    color: (u8, u8, u8)
-                }
-            }
-            let variants = e.variants.iter().map(|v| {
-                let variant = &v.ident;
-                match v.fields {
-                    syn::Fields::Named(ref fields) => {
-                        let fields = fields.named.iter().map(|field| {
-                            &field.ident
-                        }).collect::<Vec<_>>();
-        
-                        quote! {
-                            #name::#variant { #(#fields),* } => {
-                                let mut s = format!("{}::{}{{", stringify!(#name), stringify!(#variant));
-                                #(
-                                    let f = format!("{}:{},", stringify!(#fields), #fields.to_build_string());
-                                    s.push_str(&f);
-                                )*
-                                s.push('}');
-                                s
-                            }
-                        }
-                    },
-                    syn::Fields::Unnamed(ref fields) => {
-                        let fields = fields.unnamed.iter().enumerate().map(|(i, _)| {
-                            syn::parse_str::<syn::Ident>(&format!("_{i}")).unwrap()
-                        }).collect::<Vec<_>>();
-
-                        let vars = quote! {
-                            #(#fields),*
-                        };
-                        quote! {
-                            #name::#variant(#vars) => {
-                                let mut s = format!("{}::{}(", stringify!(#name), stringify!(#variant));
-                                #(
-                                    s.push_str(&#fields.to_build_string());
-                                    s.push(',');
-                                )*
-                                s.push(')');
-                                s
-                            }
-                        }
-                    }
-                    syn::Fields::Unit => quote! {
-                        #name::#variant => format!("{}::{}", stringify!(#name), stringify!(#variant)),
-                    },
-                }
-            });
-            quote! {
-                match self {
-                    #(#variants)*
-                }
-            }
-        }
+        syn::Data::Struct(ref s) => parse_struct(s, &name),
+        syn::Data::Enum(e) => parse_enum(e, &name),
         syn::Data::Union(u) => todo!(),
     };
 
@@ -133,32 +37,121 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
     .into()
 }
 
+fn parse_enum(e: syn::DataEnum, name: &syn::Ident) -> proc_macro2::TokenStream {
+    let variants = e.variants.iter().map(|v| {
+        let variant = &v.ident;
+        match v.fields {
+            syn::Fields::Named(ref fields) => {
+                let fields = fields.named.iter().map(|field| {
+                    &field.ident
+                }).collect::<Vec<_>>();
+
+                quote! {
+                    #name::#variant { #(#fields),* } => {
+                        let mut s = format!("{}::{}{{", stringify!(#name), stringify!(#variant));
+                        #(
+                            let f = format!("{}:{},", stringify!(#fields), #fields.to_build_string());
+                            s.push_str(&f);
+                        )*
+                        s.push('}');
+                        s
+                    }
+                }
+            },
+            syn::Fields::Unnamed(ref fields) => {
+                let fields = (0..fields.unnamed.len()).map(|i| {
+                    syn::parse_str::<syn::Ident>(&format!("_{i}")).unwrap()
+                }).collect::<Vec<_>>();
+
+                quote! {
+                    #name::#variant( #(#fields),* ) => {
+                        let mut s = format!("{}::{}(", stringify!(#name), stringify!(#variant));
+                        #(
+                            s.push_str(&#fields.to_build_string());
+                            s.push(',');
+                        )*
+                        s.push(')');
+                        s
+                    }
+                }
+            }
+            syn::Fields::Unit => quote! {
+                #name::#variant => format!("{}::{}", stringify!(#name), stringify!(#variant)),
+            },
+        }
+    });
+    quote! {
+        match self {
+            #(#variants)*
+        }
+    }
+}
+
+fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStream {
+    match s.fields {
+        syn::Fields::Named(ref fields) => {
+            let fields = fields.named.iter().map(|field| {
+                let name = &field.ident;
+                quote_spanned! {field.span()=>
+                    format!("{}:{},", stringify!(#name), self.#name.to_build_string())
+                }
+            });
+
+            quote! {
+                let mut s = format!("{}{{", stringify!(#name));
+                #(s.push_str(&#fields);)*
+                s.push('}');
+                s
+            }
+        }
+        syn::Fields::Unnamed(ref fields) => {
+            let fields = fields.unnamed.iter().enumerate().map(|(i, field)| {
+                let name = syn::Index::from(i);
+                quote_spanned! {field.span()=>
+                    format!("{},", self.#name.to_build_string())
+                }
+            });
+            quote! {
+                let mut s = format!("{}(", stringify!(#name));
+                #(s.push_str(&#fields);)*
+                s.push(')');
+                s
+            }
+        }
+        syn::Fields::Unit => {
+            quote! {
+                stringify!(#name).into()
+            }
+        }
+    }
+}
+
 /// Creates a local implementation of the `BuildStr` trait, to allow implementing it on foreign types.<br>
 /// This works because the [`BuildStr`] derive macro is unhygienic, allowing mixed trait implementations.
-/// 
+///
 /// The macro will create implementations for all generic data structures based on the specified feature flags,<br>
 /// meaning that you will not need to implement `Vec<T>` manually, only `T`.
-/// 
+///
 /// # Examples
 /// ```
 /// use buildstr::{impl_buildstr, BuildStr, derive::BuildStr};
-/// 
+///
 /// impl_buildstr!(BuildStr2);
-/// 
+///
 /// // num_bigint::BigInt does not implement `BuildStr`, so we need to implement it manually
 /// impl BuildStr2 for num_bigint::BigInt {
 ///     fn to_build_string(&self) -> String {
 ///         format!("num_bigint::BigInt::from_str({})", self.to_string())
 ///     }
 /// }
-/// 
+///
 /// #[derive(BuildStr)]
 /// struct Bank {
 ///     name: String,
 ///     accounts: Vec<Account>,
 ///     total_assets: num_bigint::BigInt,
 /// }
-/// 
+///
 /// #[derive(BuildStr)]
 /// struct Account {
 ///     account_number: String,
@@ -173,7 +166,8 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         pub trait BuildStr {
             fn to_build_string(&self) -> String;
         }
-    }.to_owned();
+    }
+    .to_owned();
 
     macro_rules! add_impls {
         ( $($feature:literal => $name:ident)* ) => {
@@ -196,7 +190,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         "reference" => reference
         "btree" => btree
     }
-    
+
     out.replace("BuildStr", &name).parse().unwrap()
 }
 
@@ -219,13 +213,13 @@ fn pretty() -> &'static str {
         pub trait Pretty {
             fn to_pretty_build_string(&self) -> String;
         }
-        
+
         impl<T: BuildStr> Pretty for T {
             fn to_pretty_build_string(&self) -> String {
                 buildstr::__pretty(self.to_build_string())
             }
         }
-        
+
     }
 }
 
@@ -307,6 +301,11 @@ fn vec() {
 }
 
 fn tuple() {
+    impl<A: BuildStr> BuildStr for (A,) {
+        fn to_build_string(&self) -> String {
+            format!("({},)", self.0.to_build_string())
+        }
+    }
     impl<A, B> BuildStr for (A, B) where A: BuildStr, B: BuildStr {
         fn to_build_string(&self) -> String {
             format!(
@@ -366,6 +365,111 @@ fn tuple() {
             )
         }
     }
+    impl<A, B, C, D, E, F, G> BuildStr for (A, B, C, D, E, F, G)
+    where A: BuildStr, B: BuildStr, C: BuildStr, D: BuildStr, E: BuildStr, F: BuildStr, G: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!(
+                "({}, {}, {}, {}, {}, {}, {})",
+                self.0.to_build_string(),
+                self.1.to_build_string(),
+                self.2.to_build_string(),
+                self.3.to_build_string(),
+                self.4.to_build_string(),
+                self.5.to_build_string(),
+                self.6.to_build_string()
+            )
+        }
+    }
+    impl<A, B, C, D, E, F, G, H> BuildStr for (A, B, C, D, E, F, G, H)
+    where A: BuildStr, B: BuildStr, C: BuildStr, D: BuildStr, E: BuildStr, F: BuildStr, G: BuildStr, H: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!(
+                "({}, {}, {}, {}, {}, {}, {}, {})",
+                self.0.to_build_string(),
+                self.1.to_build_string(),
+                self.2.to_build_string(),
+                self.3.to_build_string(),
+                self.4.to_build_string(),
+                self.5.to_build_string(),
+                self.6.to_build_string(),
+                self.7.to_build_string(),
+            )
+        }
+    }
+    impl<A, B, C, D, E, F, G, H, I> BuildStr for (A, B, C, D, E, F, G, H, I)
+    where A: BuildStr, B: BuildStr, C: BuildStr, D: BuildStr, E: BuildStr, F: BuildStr, G: BuildStr, H: BuildStr, I: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!(
+                "({}, {}, {}, {}, {}, {}, {}, {}, {})",
+                self.0.to_build_string(),
+                self.1.to_build_string(),
+                self.2.to_build_string(),
+                self.3.to_build_string(),
+                self.4.to_build_string(),
+                self.5.to_build_string(),
+                self.6.to_build_string(),
+                self.7.to_build_string(),
+                self.8.to_build_string(),
+            )
+        }
+    }
+    impl<A, B, C, D, E, F, G, H, I, J> BuildStr for (A, B, C, D, E, F, G, H, I, J)
+    where A: BuildStr, B: BuildStr, C: BuildStr, D: BuildStr, E: BuildStr, F: BuildStr, G: BuildStr, H: BuildStr, I: BuildStr, J: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!(
+                "({}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+                self.0.to_build_string(),
+                self.1.to_build_string(),
+                self.2.to_build_string(),
+                self.3.to_build_string(),
+                self.4.to_build_string(),
+                self.5.to_build_string(),
+                self.6.to_build_string(),
+                self.7.to_build_string(),
+                self.8.to_build_string(),
+                self.9.to_build_string(),
+            )
+        }
+    }
+    impl<A, B, C, D, E, F, G, H, I, J, K> BuildStr for (A, B, C, D, E, F, G, H, I, J, K)
+    where A: BuildStr, B: BuildStr, C: BuildStr, D: BuildStr, E: BuildStr, F: BuildStr, G: BuildStr, H: BuildStr, I: BuildStr, J: BuildStr, K: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!(
+                "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+                self.0.to_build_string(),
+                self.1.to_build_string(),
+                self.2.to_build_string(),
+                self.3.to_build_string(),
+                self.4.to_build_string(),
+                self.5.to_build_string(),
+                self.6.to_build_string(),
+                self.7.to_build_string(),
+                self.8.to_build_string(),
+                self.9.to_build_string(),
+                self.10.to_build_string(),
+            )
+        }
+    }
+    impl<A, B, C, D, E, F, G, H, I, J, K, L> BuildStr for (A, B, C, D, E, F, G, H, I, J, K, L)
+    where A: BuildStr, B: BuildStr, C: BuildStr, D: BuildStr, E: BuildStr, F: BuildStr, G: BuildStr, H: BuildStr, I: BuildStr, J: BuildStr, K: BuildStr, L: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!(
+                "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+                self.0.to_build_string(),
+                self.1.to_build_string(),
+                self.2.to_build_string(),
+                self.3.to_build_string(),
+                self.4.to_build_string(),
+                self.5.to_build_string(),
+                self.6.to_build_string(),
+                self.7.to_build_string(),
+                self.8.to_build_string(),
+                self.9.to_build_string(),
+                self.10.to_build_string(),
+                self.11.to_build_string(),
+            )
+        }
+    }
 }
 
 fn reference() {
@@ -401,4 +505,3 @@ fn btree() {
 }
 
 }
-

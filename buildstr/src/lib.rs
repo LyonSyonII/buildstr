@@ -22,13 +22,13 @@ macro_rules! array_to_build_string {
             s.push_str(&a);
             s.push(',');
         }
-        s 
-    }}
+        s
+    }};
 }
 
 #[macro_export]
 macro_rules! map_to_build_string {
-    ($map:ident) => {{ 
+    ($map:ident) => {{
         let mut s = String::new();
         let map = $map
             .iter()
@@ -37,8 +37,8 @@ macro_rules! map_to_build_string {
             s.push_str(&m);
             s.push(',');
         }
-        s 
-    }}
+        s
+    }};
 }
 
 #[cfg(feature = "pretty")]
