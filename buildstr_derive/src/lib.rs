@@ -272,7 +272,12 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             borrow,
             convert,
             time,
-            cell
+            cell,
+            fmt,
+            future,
+            hash,
+            marker,
+            mem
         ]
         "ffi" => [ffi]
     }
@@ -702,6 +707,60 @@ fn ffi() {
     }
 }
 
+fn fmt() {
+    impl BuildStr for core::fmt::Alignment {
+        fn to_build_string(&self) -> String {
+            match self {
+                core::fmt::Alignment::Left => "core::fmt::Alignment::Left",
+                core::fmt::Alignment::Right => "core::fmt::Alignment::Right",
+                core::fmt::Alignment::Center => "core::fmt::Alignment::Center",
+            }.to_string()
+        }
+    }
+    impl BuildStr for core::fmt::Arguments<'_> {
+        fn to_build_string(&self) -> String {
+            format!("core::format_args!(\"{}\")", self)
+        }
+    }
+}
+
+fn future() {
+    impl<T> BuildStr for core::future::Pending<T> {
+        fn to_build_string(&self) -> String {
+            format!("core::future::pending::<{}>()", core::any::type_name::<T>())
+        }
+    }
+}
+
+fn hash() {
+    impl<H> BuildStr for core::hash::BuildHasherDefault<H> {
+        fn to_build_string(&self) -> String {
+            format!("{}::default()", std::any::type_name::<Self>())
+        }
+    }
+}
+
+fn marker() {
+    impl<T> BuildStr for core::marker::PhantomData<T> {
+        fn to_build_string(&self) -> String {
+            format!("core::marker::PhantomData::<{}>", std::any::type_name::<T>())
+        }
+    }
+    impl BuildStr for core::marker::PhantomPinned {
+        fn to_build_string(&self) -> String {
+            "core::marker::PhantomPinned".into()
+        }
+    }
+}
+
+fn mem() {
+    impl<T: BuildStr> BuildStr for core::mem::ManuallyDrop<T> {
+        fn to_build_string(&self) -> String {
+            format!("core::mem::ManuallyDrop::new({})", (**self).to_build_string())
+        }
+    }
+}
+
 fn ops() {
     impl<T: BuildStr> BuildStr for core::ops::Bound<T> {
         fn to_build_string(&self) -> String {
@@ -713,6 +772,7 @@ fn ops() {
         }
     }
 }
+
 
 fn time() {
     impl BuildStr for core::time::Duration {
