@@ -6,6 +6,14 @@ The types listed here have no way to be built by themselves, and are therefore n
   There is no way to know if a MaybeUninit is initialized or not only with itself, so it makes no sense to implement it for all contexts.  
   If you have a struct with this type, implement `BuildStr` manually, checking if it's initialized or not.
 
+- `std::net::TcpListener`
+  The current `local_addr` can be obtained, but it returns a `Result`, having the possibility to panic at runtime.  
+  The `TcpListener::bind` method also returns a `Result`, making it unreliable.
+- `std::net::TcpStream`  
+  Same as TcpListener.
+- `std::net::UpdSocket`  
+  Same as TcpListener.
+
 ## Opaque
 - `std::any::TypeId`
 - `std::backtrace::Backtrace`
@@ -21,9 +29,14 @@ The types listed here have no way to be built by themselves, and are therefore n
 - `std::time::SystemTime`
   Same as `std::time::Instant`.
 
-- `core::mem::Discriminant<T>`
+- `std::mem::Discriminant<T>`
   Can be obtained trivially with `core::mem::discriminant`, but by definition the struct is opaque, so the value cannot be obtained at runtime.  
   It is undefined behavior to transmute between `DiscriminantKind::Discriminant` and `mem::Discriminant`.
+
+- `std::num::ParseFloatError`
+  The builder is private and the type has no builder method.
+
+- `std::num::TryFromIntError`
 
 ## Iterator
 Building the iterator would need to consume the source, which is not possible with a `&self` reference.
@@ -46,6 +59,9 @@ Building the iterator would need to consume the source, which is not possible wi
 
 - `std::mem::Assume`
 - `std::net::Ipv6MulticastScope`
+- `std::num::Saturating<T>`
+- `std::ops::GeneratorState<Y, R>`
+- `std::ops::Yeet<T>`
 
 ## Deprecated
 - `core::hash::SipHasher`
