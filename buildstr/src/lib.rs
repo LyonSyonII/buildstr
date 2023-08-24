@@ -13,19 +13,38 @@ mod string;
 
 extern crate self as buildstr;
 
+/// Transforms an iterable of a single value to an array-like sequence without the enclosing brackets.
+/// 
+/// # Examples
+/// ```
+/// use buildstr::array_to_build_string;
+/// 
+/// let array = array_to_build_string!(&[1, 2, 3]);
+/// assert_eq!(array, "1,2,3");
 #[macro_export]
 macro_rules! array_to_build_string {
-    ($array:ident) => {{
-        let mut s = String::new();
-        let array = $array.iter().map(|x| x.to_build_string());
-        for a in array {
-            s.push_str(&a);
-            s.push(',');
+    ($array:expr) => {
+        {
+            // TODO: Test fails, why?
+            let mut s = String::new();
+            let array = $array.iter().map(|x| x.to_build_string());
+            for a in array {
+                s.push_str(&a);
+                s.push(',');
+            }
+            s
         }
-        s
-    }};
+    };
 }
 
+/// Transforms an iterable of a tuple of size two to an array-like sequence without the enclosing brackets.
+/// 
+/// # Examples
+/// ```
+/// use buildstr::map_to_build_string;
+/// 
+/// let map = [("one", 1), ("two", 2), ("three, 3)];
+/// assert_eq!(map_to_build_string!(map), "(one,1),(two,2),(three,3)");
 #[macro_export]
 macro_rules! map_to_build_string {
     ($map:ident) => {{

@@ -5,7 +5,7 @@ use syn::spanned::Spanned;
 /// Derives the `BuildStr` trait for a `struct` or `enum`.
 /// 
 /// All types in the struct must have an associated function called `to_build_string`.<br>
-/// This function is already implemented for all std types.
+/// This function is already implemented for all common std types.
 /// 
 /// *If the function is not available, check that you have enabled the corresponding feature.*
 /// 
@@ -24,6 +24,7 @@ use syn::spanned::Spanned;
 ///     age: u8,
 ///     is_human: bool,
 /// }
+/// ```
 #[cfg(feature = "derive")]
 #[proc_macro_derive(BuildStr)]
 pub fn buildstr(input: TokenStream) -> TokenStream {
@@ -577,6 +578,55 @@ fn btree() {
                 "std::collections::BTreeSet::from_iter([{}])",
                 buildstr::array_to_build_string!(self)
             )
+        }
+    }
+}
+
+fn bheap() {
+    impl<T: BuildStr> BuildStr for std::collections::BinaryHeap<T> {
+        fn to_build_string(&self) -> String {
+            format!("std::collections::BinaryHeap::from_iter([{}])", buildstr::array_to_build_string!(self))
+        }
+    }
+}
+
+fn bound() {
+    impl<T: BuildStr> BuildStr for std::collections::Bound<T> {
+        fn to_build_string(&self) -> String {
+            match self {
+                core::ops::Bound::Included(i) => format!("core::ops::Bound::Included({})", i.to_build_string()),
+                core::ops::Bound::Excluded(e) => format!("core::ops::Bound::Excluded({})", e.to_build_string()),
+                core::ops::Bound::Unbounded => "core::ops::Bound::Unbounded".into(),
+            }
+        }
+    }
+}
+
+fn hash() {
+    impl<K, V> BuildStr for std::collections::HashMap<K, V> where K: BuildStr, V: BuildStr {
+        fn to_build_string(&self) -> String {
+            format!("std::collections::HashMap::from_iter([{}])", buildstr::map_to_build_string!(self))
+        }
+    }
+    impl<T: BuildStr> BuildStr for std::collections::HashSet<T> {
+        fn to_build_string(&self) -> String {
+            format!("std::collections::HashSet::from_iter([{}])", buildstr::array_to_build_string!(self))
+        }
+    }
+}
+
+fn linkedlist() {
+    impl<T: BuildStr> BuildStr for std::collections::LinkedList<T> {
+        fn to_build_string(&self) -> String {
+            format!("std::collections::LinkedList::from_iter([{}])", buildstr::array_to_build_string!(self))
+        }
+    }
+}
+
+fn vecdeque() {
+    impl<T: BuildStr> BuildStr for std::collections::VecDeque<T> {
+        fn to_build_string(&self) -> String {
+            format!("std::collections::VecDeque::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
 }

@@ -27,8 +27,13 @@ option = []
 result = []
 box = []
 
-collections = ["btree"]
+collections = ["btree", "bheap", "bound", "hash", "linkedlist", "vecdeque"]
 btree = []
+bheap = []
+bound = []
+hash = []
+linkedlist = []
+vecdeque = []
 
 [dev-dependencies]
 num-bigint = "0.4.4"
