@@ -1,4 +1,3 @@
-use buildstr::derive::BuildStr;
 use buildstr::BuildStr;
 
 #[test]
@@ -19,6 +18,7 @@ fn unnamed() {
     enum Color {
         Grayscale(u8),
         Rgb(u8, u8, u8),
+        Rgb128(&'static u128, &'static u128, &'static u128)
     }
 
     assert_eq!(
@@ -29,6 +29,10 @@ fn unnamed() {
         Color::Rgb(255, 255, 255).to_build_string(),
         "Color::Rgb(255u8,255u8,255u8,)"
     );
+    assert_eq!(
+        Color::Rgb128(&255, &255, &255).to_build_string(),
+        "Color::Rgb128(&255u128,&255u128,&255u128,)"
+    )
 }
 
 #[test]

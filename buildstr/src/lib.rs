@@ -1,7 +1,5 @@
 #[cfg(feature = "derive")]
-pub mod derive {
-    pub use buildstr_derive::BuildStr;
-}
+pub use buildstr_derive::BuildStr;
 
 pub use buildstr_derive::impl_buildstr;
 
@@ -38,17 +36,6 @@ macro_rules! array_to_build_string {
             s
         }
     };
-}
-
-fn a() -> String {
-    let mut s = String::new();
-    let array = &[1, 2, 3];
-    let array = array.iter().map(|x| x.to_build_string());
-    for a in array {
-        s.push_str(&a);
-        s.push(',');
-    }
-    s
 }
 
 /// Transforms an iterable of a tuple of size two to an array-like sequence without the enclosing brackets.

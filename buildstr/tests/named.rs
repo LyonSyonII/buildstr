@@ -1,4 +1,3 @@
-pub use buildstr::derive::BuildStr;
 pub use buildstr::BuildStr;
 
 #[test]

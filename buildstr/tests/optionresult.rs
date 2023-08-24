@@ -1,5 +1,4 @@
 use buildstr::BuildStr;
-use buildstr_derive::BuildStr;
 
 #[test]
 fn option() {

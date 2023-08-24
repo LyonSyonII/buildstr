@@ -14,8 +14,7 @@ use syn::spanned::Spanned;
 /// # Examples
 /// ```
 /// use buildstr::BuildStr;
-/// use buildstr::derive::BuildStr;
-/// 
+/// /// 
 /// #[derive(BuildStr)]
 /// struct Person {
 ///     name: String,
@@ -47,10 +46,11 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
     let body = match input.data {
         syn::Data::Struct(ref s) => parse_struct(s, &name),
         syn::Data::Enum(e) => parse_enum(e, &name),
-        syn::Data::Union(u) => todo!(),
+        syn::Data::Union(u) => panic!("Unions are not supported"),
     };
 
     quote! {
+        #[allow(clippy::needless_borrow)]
         impl #impl_generics BuildStr for #name #ty_generics #where_clause {
             fn to_build_string(&self) -> String {
                 #body
@@ -116,7 +116,7 @@ fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStr
             let fields = fields.named.iter().map(|field| {
                 let name = &field.ident;
                 quote_spanned! {field.span()=>
-                    format!("{}:{},", stringify!(#name), self.#name.to_build_string())
+                    format!("{}:{},", stringify!(#name), (&self.#name).to_build_string())
                 }
             });
 
@@ -131,7 +131,7 @@ fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStr
             let fields = fields.unnamed.iter().enumerate().map(|(i, field)| {
                 let name = syn::Index::from(i);
                 quote_spanned! {field.span()=>
-                    format!("{},", self.#name.to_build_string())
+                    format!("{},", (&self.#name).to_build_string())
                 }
             });
             quote! {
@@ -157,7 +157,7 @@ fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStr
 ///
 /// # Examples
 /// ```
-/// use buildstr::{impl_buildstr, BuildStr, derive::BuildStr};
+/// use buildstr::{impl_buildstr, BuildStr};
 ///
 /// impl_buildstr!(BuildStr2);
 ///
@@ -200,8 +200,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         /// # Examples
         /// ```
         /// use buildstr::BuildStr;
-        /// use buildstr::derive::BuildStr;
-        /// 
+        ///         /// 
         /// #[derive(BuildStr)]
         /// struct Person {
         ///     name: String,
@@ -214,7 +213,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         ///     age: 30,
         ///     balance: 1000.   
         /// };
-        /// assert_eq!(person.to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+        /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
         /// ```
         pub trait BuildStr {
             /// Trait for getting a string representation of the builder of a type.
@@ -226,8 +225,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             /// # Examples
             /// ```
             /// use buildstr::BuildStr;
-            /// use buildstr::derive::BuildStr;
-            /// 
+            ///             /// 
             /// #[derive(BuildStr)]
             /// struct Person {
             ///     name: String,
@@ -240,7 +238,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             ///     age: 30,
             ///     balance: 1000.
             /// };
-            /// assert_eq!(person.to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+            /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
             /// ```
             fn to_build_string(&self) -> String;
         }
@@ -269,6 +267,12 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             tuple,
             reference
         ]
+        "cell" => [
+            cell,
+            oncecell,
+            refcell,
+            unsafecell
+        ]
         "collections" => [
             btree,
             bheap,
@@ -276,6 +280,12 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             hash,
             linkedlist,
             vecdeque
+        ]
+        "cow" => [
+            cow
+        ]
+        "time" => [
+            time
         ]
     }
 
@@ -303,7 +313,7 @@ fn pretty() -> &'static str {
         }
         impl<T: BuildStr> Pretty for T {
             fn to_pretty_build_string(&self) -> String {
-                buildstr::__pretty(self.to_build_string())
+                buildstr::__pretty((&self).to_build_string())
             }
         }
     }
@@ -315,7 +325,7 @@ fn option() {
     impl<T: BuildStr> BuildStr for Option<T> {
         fn to_build_string(&self) -> String {
             match self {
-                Some(s) => format!("Some({})", s.to_build_string()),
+                Some(s) => format!("Some({})", (&s).to_build_string()),
                 None => std::string::String::from("None"),
             }
         }
@@ -326,8 +336,8 @@ fn result() {
     impl<T, E> BuildStr for Result<T, E> where T: BuildStr, E: BuildStr {
         fn to_build_string(&self) -> String {
             match self {
-                Ok(s) => format!("Ok({})", s.to_build_string()),
-                Err(s) => format!("Err({})", s.to_build_string()),
+                Ok(s) => format!("Ok({})", (&s).to_build_string()),
+                Err(s) => format!("Err({})", (&s).to_build_string()),
             }
         }
     }
@@ -389,15 +399,15 @@ fn vec() {
 fn tuple() {
     impl<A: BuildStr> BuildStr for (A,) {
         fn to_build_string(&self) -> String {
-            format!("({},)", self.0.to_build_string())
+            format!("({},)", (&self.0).to_build_string())
         }
     }
     impl<A, B> BuildStr for (A, B) where A: BuildStr, B: BuildStr {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string()
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string()
             )
         }
     }
@@ -406,9 +416,9 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string()
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string()
             )
         }
     }
@@ -417,10 +427,10 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string()
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string()
             )
         }
     }
@@ -429,11 +439,11 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string()
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string()
             )
         }
     }
@@ -442,12 +452,12 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string()
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string()
             )
         }
     }
@@ -456,13 +466,13 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string(),
-                self.6.to_build_string()
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string(),
+                (&self.6).to_build_string()
             )
         }
     }
@@ -471,14 +481,14 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string(),
-                self.6.to_build_string(),
-                self.7.to_build_string(),
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string(),
+                (&self.6).to_build_string(),
+                (&self.7).to_build_string(),
             )
         }
     }
@@ -487,15 +497,15 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string(),
-                self.6.to_build_string(),
-                self.7.to_build_string(),
-                self.8.to_build_string(),
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string(),
+                (&self.6).to_build_string(),
+                (&self.7).to_build_string(),
+                (&self.8).to_build_string(),
             )
         }
     }
@@ -504,16 +514,16 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string(),
-                self.6.to_build_string(),
-                self.7.to_build_string(),
-                self.8.to_build_string(),
-                self.9.to_build_string(),
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string(),
+                (&self.6).to_build_string(),
+                (&self.7).to_build_string(),
+                (&self.8).to_build_string(),
+                (&self.9).to_build_string(),
             )
         }
     }
@@ -522,17 +532,17 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string(),
-                self.6.to_build_string(),
-                self.7.to_build_string(),
-                self.8.to_build_string(),
-                self.9.to_build_string(),
-                self.10.to_build_string(),
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string(),
+                (&self.6).to_build_string(),
+                (&self.7).to_build_string(),
+                (&self.8).to_build_string(),
+                (&self.9).to_build_string(),
+                (&self.10).to_build_string(),
             )
         }
     }
@@ -541,18 +551,18 @@ fn tuple() {
         fn to_build_string(&self) -> String {
             format!(
                 "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-                self.0.to_build_string(),
-                self.1.to_build_string(),
-                self.2.to_build_string(),
-                self.3.to_build_string(),
-                self.4.to_build_string(),
-                self.5.to_build_string(),
-                self.6.to_build_string(),
-                self.7.to_build_string(),
-                self.8.to_build_string(),
-                self.9.to_build_string(),
-                self.10.to_build_string(),
-                self.11.to_build_string(),
+                (&self.0).to_build_string(),
+                (&self.1).to_build_string(),
+                (&self.2).to_build_string(),
+                (&self.3).to_build_string(),
+                (&self.4).to_build_string(),
+                (&self.5).to_build_string(),
+                (&self.6).to_build_string(),
+                (&self.7).to_build_string(),
+                (&self.8).to_build_string(),
+                (&self.9).to_build_string(),
+                (&self.10).to_build_string(),
+                (&self.11).to_build_string(),
             )
         }
     }
@@ -567,6 +577,68 @@ fn reference() {
     impl<T: BuildStr> BuildStr for &mut T {
         fn to_build_string(&self) -> String {
             format!("&mut {}", BuildStr::to_build_string(*self))
+        }
+    }
+}
+
+fn cow() {
+    impl<T: BuildStr + Clone> BuildStr for std::borrow::Cow<'_, T> {
+        fn to_build_string(&self) -> String {
+            match self {
+                std::borrow::Cow::Borrowed(b) => format!("std::borrow::Cow::Borrowed({})", (&b).to_build_string()),
+                std::borrow::Cow::Owned(o) => format!("std::borrow::Cow::Owned({})", (&o).to_build_string()),
+            }
+        }
+    }
+}
+
+fn cell() {
+    impl <T: BuildStr> BuildStr for core::cell::Cell<T> {
+        fn to_build_string(&self) -> String {
+            let v = self.as_ptr() as *const T;
+            // SAFETY: The pointer must be valid, as the cell is always initialized
+            if let Some(v) = unsafe { v.as_ref() } {
+                format!("core::cell::Cell::new({})", (&v).to_build_string())
+            } else {
+                panic!("Invalid pointer in core::cell::Cell, can't convert to BuildStr");
+            }
+        }
+    }
+}
+fn oncecell() {
+    // TODO: Needs testing
+    impl <T: BuildStr> BuildStr for core::cell::OnceCell<T> {
+        fn to_build_string(&self) -> String {
+            if let Some(v) = self.get() {
+                format!("{{ 
+                    let cell = core::cell::OnceCell::new(); 
+                    let _ = cell.set({});
+                    cell
+                }}", (&v).to_build_string())
+            } else {
+                "core::cell::OnceCell::new()".into()
+            }
+        }
+    }
+}
+fn refcell() {
+    impl <T: BuildStr> BuildStr for core::cell::RefCell<T> {
+        fn to_build_string(&self) -> String {
+            format!("core::cell::RefCell::new({})", self.borrow().to_build_string())
+        }
+    }
+}
+fn unsafecell() {
+    // TODO: Needs testing
+    impl <T: BuildStr> BuildStr for core::cell::UnsafeCell<T> {
+        fn to_build_string(&self) -> String {
+            let v = self.get() as *const T;
+            // SAFETY: The pointer must be valid, as the cell is always initialized
+            if let Some(v) = unsafe { v.as_ref() } {
+                format!("core::cell::UnsafeCell::new({})", (&v).to_build_string())
+            } else {
+                panic!("Invalid pointer in core::cell::Cell, can't convert to BuildStr");
+            }
         }
     }
 }
@@ -589,7 +661,6 @@ fn btree() {
         }
     }
 }
-
 fn bheap() {
     impl<T: BuildStr> BuildStr for std::collections::BinaryHeap<T> {
         fn to_build_string(&self) -> String {
@@ -597,19 +668,17 @@ fn bheap() {
         }
     }
 }
-
 fn bound() {
     impl<T: BuildStr> BuildStr for std::collections::Bound<T> {
         fn to_build_string(&self) -> String {
             match self {
-                core::ops::Bound::Included(i) => format!("core::ops::Bound::Included({})", i.to_build_string()),
-                core::ops::Bound::Excluded(e) => format!("core::ops::Bound::Excluded({})", e.to_build_string()),
+                core::ops::Bound::Included(i) => format!("core::ops::Bound::Included({})", (&i).to_build_string()),
+                core::ops::Bound::Excluded(e) => format!("core::ops::Bound::Excluded({})", (&e).to_build_string()),
                 core::ops::Bound::Unbounded => "core::ops::Bound::Unbounded".into(),
             }
         }
     }
 }
-
 fn hash() {
     impl<K, V> BuildStr for std::collections::HashMap<K, V> where K: BuildStr, V: BuildStr {
         fn to_build_string(&self) -> String {
@@ -622,7 +691,6 @@ fn hash() {
         }
     }
 }
-
 fn linkedlist() {
     impl<T: BuildStr> BuildStr for std::collections::LinkedList<T> {
         fn to_build_string(&self) -> String {
@@ -630,11 +698,18 @@ fn linkedlist() {
         }
     }
 }
-
 fn vecdeque() {
     impl<T: BuildStr> BuildStr for std::collections::VecDeque<T> {
         fn to_build_string(&self) -> String {
             format!("std::collections::VecDeque::from_iter([{}])", buildstr::array_to_build_string!(self))
+        }
+    }
+}
+
+fn time() {
+    impl BuildStr for core::time::Duration {
+        fn to_build_string(&self) -> String {
+            format!("core::time::Duration::new({}, {})", self.as_secs(), self.subsec_nanos())
         }
     }
 }

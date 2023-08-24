@@ -30,6 +30,11 @@ impl BuildStr for u64 {
         format!("{}u64", self)
     }
 }
+impl BuildStr for u128 {
+    fn to_build_string(&self) -> String {
+        format!("{}u128", self)
+    }
+}
 impl BuildStr for usize {
     fn to_build_string(&self) -> String {
         format!("{}usize", self)
@@ -53,6 +58,11 @@ impl BuildStr for i32 {
 impl BuildStr for i64 {
     fn to_build_string(&self) -> String {
         format!("{}i64", self)
+    }
+}
+impl BuildStr for i128 {
+    fn to_build_string(&self) -> String {
+        format!("{}i128", self)
     }
 }
 impl BuildStr for isize {

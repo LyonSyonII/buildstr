@@ -12,13 +12,14 @@ proc-macro2 = { version = "1.0.66", optional = true }
 prettier-please = { version = "0.2.0", optional = true }
 
 [features]
-default = ["prelude", "collections", "derive"]
 derive = ["quote", "syn", "proc-macro2"]
 
 pretty = []
-
 prelude = []
+cell = []
 collections = []
+cow = []
+time = []
 
 [dev-dependencies]
 num-bigint = "0.4.4"
