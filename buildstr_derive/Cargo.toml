@@ -16,10 +16,9 @@ derive = ["quote", "syn", "proc-macro2"]
 
 pretty = []
 prelude = []
-cell = []
 collections = []
-cow = []
-time = []
+extra = []
+ffi = []
 
 [dev-dependencies]
 num-bigint = "0.4.4"

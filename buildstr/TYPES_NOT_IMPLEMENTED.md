@@ -8,15 +8,21 @@ The types listed here have no way to be built by themselves, and are therefore n
 - `std::backtrace::Backtrace`
 - `std::cell::Ref<'_, T>`
 - `std::cell::RefMut<'_, T>`
-
 - `std::time::Instant`  
   The only method available to generate an `Instant` is `Instant::now()`, which is obviously not what you want.
 
 - `std::time::SystemTime`
   Same as `std::time::Instant`.
 
+## Iterator
+- `std::error::Source<'_>`
+
 ## Unstable
 
 - `std::ascii::Char`
 - `std::cell::LazyCell<T>`
 - `std::cell::SyncUnsafeCell<T>`
+- `std::ffi::NonZero_c_XXX`
+- `std::ffi::VaList<'_, '_>`
+- `std::ffi::VaListImpl<'_, '_>`
+- `std::ffi::c_void`

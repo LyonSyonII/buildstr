@@ -267,26 +267,14 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             tuple,
             reference
         ]
-        "cell" => [
-            cell,
-            oncecell,
-            refcell,
-            unsafecell
+        "collections" => [collections]
+        "extra" => [
+            borrow,
+            convert,
+            time,
+            cell
         ]
-        "collections" => [
-            btree,
-            bheap,
-            bound,
-            hash,
-            linkedlist,
-            vecdeque
-        ]
-        "cow" => [
-            cow
-        ]
-        "time" => [
-            time
-        ]
+        "ffi" => [ffi]
     }
 
     out.replace("BuildStr", &name).parse().unwrap()
@@ -581,7 +569,7 @@ fn reference() {
     }
 }
 
-fn cow() {
+fn borrow() {
     impl<T: BuildStr + Clone> BuildStr for std::borrow::Cow<'_, T> {
         fn to_build_string(&self) -> String {
             match self {
@@ -604,8 +592,6 @@ fn cell() {
             }
         }
     }
-}
-fn oncecell() {
     // TODO: Needs testing
     impl <T: BuildStr> BuildStr for core::cell::OnceCell<T> {
         fn to_build_string(&self) -> String {
@@ -620,16 +606,12 @@ fn oncecell() {
             }
         }
     }
-}
-fn refcell() {
     impl <T: BuildStr> BuildStr for core::cell::RefCell<T> {
         fn to_build_string(&self) -> String {
             format!("core::cell::RefCell::new({})", self.borrow().to_build_string())
         }
     }
-}
-fn unsafecell() {
-    // TODO: Needs testing
+        // TODO: Needs testing
     impl <T: BuildStr> BuildStr for core::cell::UnsafeCell<T> {
         fn to_build_string(&self) -> String {
             let v = self.get() as *const T;
@@ -643,7 +625,7 @@ fn unsafecell() {
     }
 }
 
-fn btree() {
+fn collections() {
     impl<K, V> BuildStr for std::collections::BTreeMap<K, V> where K: BuildStr + core::cmp::Ord, V: BuildStr {
         fn to_build_string(&self) -> String {
             format!(
@@ -660,26 +642,11 @@ fn btree() {
             )
         }
     }
-}
-fn bheap() {
     impl<T: BuildStr> BuildStr for std::collections::BinaryHeap<T> {
         fn to_build_string(&self) -> String {
             format!("std::collections::BinaryHeap::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-}
-fn bound() {
-    impl<T: BuildStr> BuildStr for std::collections::Bound<T> {
-        fn to_build_string(&self) -> String {
-            match self {
-                core::ops::Bound::Included(i) => format!("core::ops::Bound::Included({})", (&i).to_build_string()),
-                core::ops::Bound::Excluded(e) => format!("core::ops::Bound::Excluded({})", (&e).to_build_string()),
-                core::ops::Bound::Unbounded => "core::ops::Bound::Unbounded".into(),
-            }
-        }
-    }
-}
-fn hash() {
     impl<K, V> BuildStr for std::collections::HashMap<K, V> where K: BuildStr, V: BuildStr {
         fn to_build_string(&self) -> String {
             format!("std::collections::HashMap::from_iter([{}])", buildstr::map_to_build_string!(self))
@@ -690,18 +657,59 @@ fn hash() {
             format!("std::collections::HashSet::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-}
-fn linkedlist() {
     impl<T: BuildStr> BuildStr for std::collections::LinkedList<T> {
         fn to_build_string(&self) -> String {
             format!("std::collections::LinkedList::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-}
-fn vecdeque() {
     impl<T: BuildStr> BuildStr for std::collections::VecDeque<T> {
         fn to_build_string(&self) -> String {
             format!("std::collections::VecDeque::from_iter([{}])", buildstr::array_to_build_string!(self))
+        }
+    }
+}
+
+fn cmp() {
+    impl BuildStr for core::cmp::Ordering {
+        fn to_build_string(&self) -> String {
+            match self {
+                std::cmp::Ordering::Less => "core::cmp::Ordering::Less",
+                std::cmp::Ordering::Equal => "core::cmp::Ordering::Equal",
+                std::cmp::Ordering::Greater => "core::cmp::Ordering::Greater",
+            }.to_string()
+        }
+    }
+    impl<T: BuildStr> BuildStr for core::cmp::Reverse<T> {
+        fn to_build_string(&self) -> String {
+            format!("core::cmp::Reverse({})", self.0.to_build_string())
+        }
+    }
+}
+
+fn convert() {
+    impl BuildStr for core::convert::Infallible {
+        fn to_build_string(&self) -> String {
+            "core::convert::Infallible".to_string()
+        }
+    }
+}
+
+fn ffi() {
+    impl BuildStr for core::ffi::CStr {
+        fn to_build_string(&self) -> String {
+            format!("Self::from_bytes_with_nul({}).unwrap()", self.to_bytes_with_nul().to_build_string())
+        }
+    }
+}
+
+fn ops() {
+    impl<T: BuildStr> BuildStr for core::ops::Bound<T> {
+        fn to_build_string(&self) -> String {
+            match self {
+                core::ops::Bound::Included(i) => format!("core::ops::Bound::Included({})", (&i).to_build_string()),
+                core::ops::Bound::Excluded(e) => format!("core::ops::Bound::Excluded({})", (&e).to_build_string()),
+                core::ops::Bound::Unbounded => "core::ops::Bound::Unbounded".into(),
+            }
         }
     }
 }
