@@ -10,7 +10,7 @@ authors = ["Liam Garriga <liam@garriga.dev>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-buildstr_derive = { version = "0.1.0", path = "../buildstr_derive" }
+buildstr_derive = { version = "0.1.0", path = "../buildstr_derive", features = [] }
 syn = { version = "2.0.29", optional = true, features = ["parsing"] }
 prettier-please = { version = "0.2.0", optional = true }
 
@@ -20,16 +20,5 @@ derive = ["buildstr_derive/derive"]
 
 pretty = ["syn", "prettier-please", "buildstr_derive/pretty"]
 
-prelude = ["primitives", "vec", "reference", "array", "tuple", "string", "option", "result", "box"]
-primitives = []
-string = []
-reference = ["buildstr_derive/reference"]
-vec = ["buildstr_derive/vec"]
-array = ["buildstr_derive/array"]
-tuple = ["buildstr_derive/tuple"]
-option = ["buildstr_derive/option"]
-result = ["buildstr_derive/result"]
-box = ["buildstr_derive/box"]
-
-collections = ["btree"]
-btree = ["buildstr_derive/btree"]
+prelude = []
+collections = []

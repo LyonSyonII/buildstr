@@ -213,8 +213,8 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         ///     name: "John".to_string(),
         ///     age: 30,
         ///     balance: 1000.   
-        /// }
-        /// assert_eq!(person.to_build_string(), "Person{name:String::from(\"John\"),age:30u8,balance: 1000.0f64}");
+        /// };
+        /// assert_eq!(person.to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
         /// ```
         pub trait BuildStr {
             /// Trait for getting a string representation of the builder of a type.
@@ -238,9 +238,9 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             /// let person = Person {
             ///     name: "John".to_string(),
             ///     age: 30,
-            ///     balance: 1000.   
-            /// }
-            /// assert_eq!(person.to_build_string(), "Person{name:String::from(\"John\"),age:30u8,balance: 1000.0f64}");
+            ///     balance: 1000.
+            /// };
+            /// assert_eq!(person.to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
             /// ```
             fn to_build_string(&self) -> String;
         }
@@ -248,25 +248,35 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
     .to_owned();
 
     macro_rules! add_impls {
-        ( $($feature:literal => $name:ident)* ) => {
+        ( $($feature:literal => [$($name:ident),*])* ) => {
             $(
-            #[cfg(feature = $feature)]
-            out.push_str($name());
+                #[cfg(feature = $feature)] {
+                    $(out.push_str($name());)*
+                }
             )*
         }
     }
 
     add_impls! {
-        "pretty" => pretty
-        "option" => option
-        "result" => result
-        "box" => r#box
-        "rc" => rc
-        "array" => array
-        "vec" => vec
-        "tuple" => tuple
-        "reference" => reference
-        "btree" => btree
+        "pretty" => [pretty]
+        "prelude" => [
+            option,
+            result,
+            r#box,
+            rc,
+            array,
+            vec,
+            tuple,
+            reference
+        ]
+        "collections" => [
+            btree,
+            bheap,
+            bound,
+            hash,
+            linkedlist,
+            vecdeque
+        ]
     }
 
     out.replace("BuildStr", &name).parse().unwrap()
@@ -291,13 +301,11 @@ fn pretty() -> &'static str {
         pub trait Pretty {
             fn to_pretty_build_string(&self) -> String;
         }
-
         impl<T: BuildStr> Pretty for T {
             fn to_pretty_build_string(&self) -> String {
                 buildstr::__pretty(self.to_build_string())
             }
         }
-
     }
 }
 
@@ -308,7 +316,7 @@ fn option() {
         fn to_build_string(&self) -> String {
             match self {
                 Some(s) => format!("Some({})", s.to_build_string()),
-                None => String::from("None"),
+                None => std::string::String::from("None"),
             }
         }
     }
@@ -346,7 +354,7 @@ fn rc() {
                     "std::rc::Rc::downgrade(&std::rc::Rc::new({}))",
                     s.as_ref().to_build_string()
                 ),
-                None => String::from("std::rc::Weak::new()"),
+                None => std::string::String::from("std::rc::Weak::new()"),
             }
         }
     }

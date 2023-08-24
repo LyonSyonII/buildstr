@@ -45,6 +45,6 @@ fn named() {
             age: 3
         }
         .to_build_string(),
-        "Animals::Dog{name:String::from(\"Fido\"),age:3u8,}"
+        "Animals::Dog{name:std::string::String::from(\"Fido\"),age:3u8,}"
     );
 }

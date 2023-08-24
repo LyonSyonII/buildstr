@@ -7,6 +7,6 @@ impl BuildStr for &str {
 }
 impl BuildStr for String {
     fn to_build_string(&self) -> String {
-        format!("String::from({:?})", self)
+        format!("std::string::String::from({:?})", self)
     }
 }

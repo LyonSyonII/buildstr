@@ -72,6 +72,6 @@ impl BuildStr for f64 {
 }
 impl BuildStr for () {
     fn to_build_string(&self) -> String {
-        String::from("()")
+        std::string::String::from("()")
     }
 }

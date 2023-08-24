@@ -17,23 +17,8 @@ derive = ["quote", "syn", "proc-macro2"]
 
 pretty = []
 
-prelude = ["vec", "reference", "array", "tuple", "option", "result", "box"]
-reference = []
-vec = []
-array = []
-tuple = []
-string = []
-option = []
-result = []
-box = []
-
-collections = ["btree", "bheap", "bound", "hash", "linkedlist", "vecdeque"]
-btree = []
-bheap = []
-bound = []
-hash = []
-linkedlist = []
-vecdeque = []
+prelude = []
+collections = []
 
 [dev-dependencies]
 num-bigint = "0.4.4"
