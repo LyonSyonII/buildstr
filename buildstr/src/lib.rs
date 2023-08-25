@@ -71,3 +71,11 @@ pub fn __pretty(code: String) -> String {
 }
 
 impl_buildstr!(BuildStr);
+
+impl<T: Unpin + BuildStr + core::ops::Deref> BuildStr for std::pin::Pin<T> {
+    fn to_build_string(&self) -> String {
+        // SAFETY: std::pin::Pin<T> is repr(transparent), so we can safely downcast it
+        let ptr: &T = unsafe { std::mem::transmute(self) };
+        format!("std::pin::Pin::new({})", ptr.to_build_string())
+    }
+}

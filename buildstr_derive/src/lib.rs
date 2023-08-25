@@ -280,7 +280,8 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             hash,
             marker,
             mem,
-            net
+            net,
+            panic
         ]
         "ffi" => [ffi]
     }
@@ -969,6 +970,13 @@ fn ops() {
     }
 }
 
+fn panic() {
+    impl<T: BuildStr> BuildStr for core::panic::AssertUnwindSafe<T> {
+        fn to_build_string(&self) -> String {
+            format!("core::panic::AssertUnwindSafe({})", self.0.to_build_string())
+        }
+    }
+}
 
 fn time() {
     impl BuildStr for core::time::Duration {

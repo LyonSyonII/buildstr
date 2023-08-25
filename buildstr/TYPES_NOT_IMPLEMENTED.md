@@ -38,6 +38,12 @@ The types listed here have no way to be built by themselves, and are therefore n
 
 - `std::num::TryFromIntError`
 
+- `std::panic::Location`
+  The constructor is internal, so it can only be built by the compiler.
+
+- `std::panic::PanicInfo`
+  Same as `panic::Location`.
+
 ## Iterator
 Building the iterator would need to consume the source, which is not possible with a `&self` reference.
 - `std::error::Source<'_>`
@@ -62,6 +68,7 @@ Building the iterator would need to consume the source, which is not possible wi
 - `std::num::Saturating<T>`
 - `std::ops::GeneratorState<Y, R>`
 - `std::ops::Yeet<T>`
+- `std::panic::BacktraceStyle`
 
 ## Deprecated
 - `core::hash::SipHasher`
