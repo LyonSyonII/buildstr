@@ -5,6 +5,11 @@ impl BuildStr for char {
         format!("{:?}", self)
     }
 }
+impl BuildStr for &str {
+    fn to_build_string(&self) -> String {
+        format!("\"{self}\"")
+    }
+}
 impl BuildStr for bool {
     fn to_build_string(&self) -> String {
         format!("{:?}", self)

@@ -44,6 +44,14 @@ The types listed here have no way to be built by themselves, and are therefore n
 - `std::panic::PanicInfo`
   Same as `panic::Location`.
 
+- `std::process::Child`
+  The constructors's argument `handle` is private, and there is no other way to build a `Child`.
+
+- `std::process::ChildStderr`
+- `std::process::ChildStdin`
+- `std::process::ChildStdout`
+
+
 ## Iterator
 Building the iterator would need to consume the source, which is not possible with a `&self` reference.
 - `std::error::Source<'_>`

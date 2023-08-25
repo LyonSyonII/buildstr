@@ -272,6 +272,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         "ops" => [ops]
         "extra" => [
             borrow,
+            cmp,
             convert,
             time,
             cell,
@@ -281,9 +282,10 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             marker,
             mem,
             net,
-            panic
+            panic,
+            pin,
+            ffi
         ]
-        "ffi" => [ffi]
     }
 
     out.replace("BuildStr", &name).parse().unwrap()
@@ -679,15 +681,6 @@ fn collections() {
 }
 
 fn cmp() {
-    impl BuildStr for core::cmp::Ordering {
-        fn to_build_string(&self) -> String {
-            match self {
-                std::cmp::Ordering::Less => "core::cmp::Ordering::Less",
-                std::cmp::Ordering::Equal => "core::cmp::Ordering::Equal",
-                std::cmp::Ordering::Greater => "core::cmp::Ordering::Greater",
-            }.to_string()
-        }
-    }
     impl<T: BuildStr> BuildStr for core::cmp::Reverse<T> {
         fn to_build_string(&self) -> String {
             format!("core::cmp::Reverse({})", self.0.to_build_string())
@@ -696,31 +689,14 @@ fn cmp() {
 }
 
 fn convert() {
-    impl BuildStr for core::convert::Infallible {
-        fn to_build_string(&self) -> String {
-            "core::convert::Infallible".to_string()
-        }
-    }
+
 }
 
 fn ffi() {
-    impl BuildStr for core::ffi::CStr {
-        fn to_build_string(&self) -> String {
-            format!("Self::from_bytes_with_nul({}).unwrap()", self.to_bytes_with_nul().to_build_string())
-        }
-    }
+
 }
 
 fn fmt() {
-    impl BuildStr for core::fmt::Alignment {
-        fn to_build_string(&self) -> String {
-            match self {
-                core::fmt::Alignment::Left => "core::fmt::Alignment::Left",
-                core::fmt::Alignment::Right => "core::fmt::Alignment::Right",
-                core::fmt::Alignment::Center => "core::fmt::Alignment::Center",
-            }.to_string()
-        }
-    }
     impl BuildStr for core::fmt::Arguments<'_> {
         fn to_build_string(&self) -> String {
             format!("core::format_args!(\"{}\")", self)
@@ -750,11 +726,6 @@ fn marker() {
             format!("core::marker::PhantomData::<{}>", std::any::type_name::<T>())
         }
     }
-    impl BuildStr for core::marker::PhantomPinned {
-        fn to_build_string(&self) -> String {
-            "core::marker::PhantomPinned".into()
-        }
-    }
 }
 
 fn mem() {
@@ -766,149 +737,13 @@ fn mem() {
 }
 
 fn net() {
-    impl BuildStr for std::net::IpAddr {
-        fn to_build_string(&self) -> String {
-            match self {
-                std::net::IpAddr::V4(v) => format!("std::net::IpAddr::V4({})", v.to_build_string()),
-                std::net::IpAddr::V6(v) => format!("std::net::IpAddr::V6({})", v.to_build_string()),
-            }
-        }
-    }
-    impl BuildStr for std::net::Ipv4Addr {
-        fn to_build_string(&self) -> String {
-            format!("std::net::Ipv4Addr::from({})", self.octets().to_build_string())
-        }
-    }
-    impl BuildStr for std::net::Ipv6Addr {
-        fn to_build_string(&self) -> String {
-            format!("std::net::Ipv6Addr::from({})", self.octets().to_build_string())
-        }
-    }
-    impl BuildStr for std::net::Shutdown {
-        fn to_build_string(&self) -> String {
-            match self {
-                std::net::Shutdown::Read => "std::net::Shutdown::Read",
-                std::net::Shutdown::Write => "std::net::Shutdown::Write",
-                std::net::Shutdown::Both => "std::net::Shutdown::Both",
-            }.into()
-        }
-    }
-    impl BuildStr for std::net::SocketAddr {
-        fn to_build_string(&self) -> String {
-            match self {
-                std::net::SocketAddr::V4(v) => format!("std::net::SocketAddr::V4({})", v.to_build_string()),
-                std::net::SocketAddr::V6(v) => format!("std::net::SocketAddr::V6({})", v.to_build_string())
-            }
-        }
-    }
-    impl BuildStr for std::net::SocketAddrV4 {
-        fn to_build_string(&self) -> String {
-            format!("std::net::SocketAddrV4::new({}, {})", self.ip().to_build_string(), self.port())
-        }
-    }
-    impl BuildStr for std::net::SocketAddrV6 {
-        fn to_build_string(&self) -> String {
-            let ip = self.ip().to_build_string();
-            let port = self.port();
-            let flowinfo = self.flowinfo();
-            let scope_id = self.scope_id();
-            format!("std::net::SocketAddrV6::new({ip}, {port}, {flowinfo}, {scope_id})")
-        }
-    }
+    
 }
 
 fn num() {
-    impl BuildStr for core::num::FpCategory {
-        fn to_build_string(&self) -> String {
-            match self {
-                core::num::FpCategory::Nan => "core::num::FpCategory::Nan",
-                core::num::FpCategory::Infinite => "core::num::FpCategory::Infinite",
-                core::num::FpCategory::Zero => "core::num::FpCategory::Zero",
-                core::num::FpCategory::Subnormal => "core::num::FpCategory::Subnormal",
-                core::num::FpCategory::Normal => "core::num::FpCategory::Normal",
-            }.into()
-        }
-    }
-    impl BuildStr for core::num::IntErrorKind {
-        fn to_build_string(&self) -> String {
-            match self {
-                core::num::IntErrorKind::Empty => "core::num::IntErrorKind::Empty",
-                core::num::IntErrorKind::InvalidDigit => "core::num::IntErrorKind::InvalidDigit",
-                core::num::IntErrorKind::PosOverflow => "core::num::IntErrorKind::PosOverflow",
-                core::num::IntErrorKind::NegOverflow => "core::num::IntErrorKind::NegOverflow",
-                core::num::IntErrorKind::Zero => "core::num::IntErrorKind::Zero",
-                _ => unreachable!("IntErrorKind should not have another value"),
-            }.into()
-        }
-    }
-    impl BuildStr for core::num::ParseIntError {
-        fn to_build_string(&self) -> String {
-            format!("core::num::ParseIntError::new({})", self.kind().to_build_string())
-        }
-    }
     impl<T: BuildStr> BuildStr for core::num::Wrapping<T> {
         fn to_build_string(&self) -> String {
             format!("core::num::Wrapping({})", self.0.to_build_string())
-        }
-    }
-    impl BuildStr for core::num::NonZeroU8 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroU8::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroU16 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroU16::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroU32 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroU32::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroU64 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroU64::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroU128 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroU128::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroUsize {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroUsize::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroI8 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroI8::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroI16 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroI16::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroI32 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroI32::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroI64 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroI64::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroI128 {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroI128::new({})", self.get())
-        }
-    }
-    impl BuildStr for core::num::NonZeroIsize {
-        fn to_build_string(&self) -> String {
-            format!("core::num::NonZeroIsize::new({})", self.get())
         }
     }
 }
@@ -944,11 +779,6 @@ fn ops() {
             format!("core::ops::RangeFrom {{ start: {start} }}")
         }
     }
-    impl BuildStr for core::ops::RangeFull {
-        fn to_build_string(&self) -> String {
-            "core::ops::RangeFull".into()
-        }
-    }
     impl<Idx: BuildStr> BuildStr for core::ops::RangeInclusive<Idx> {
         fn to_build_string(&self) -> String {
             let start = self.start().to_build_string();
@@ -978,12 +808,18 @@ fn panic() {
     }
 }
 
-fn time() {
-    impl BuildStr for core::time::Duration {
+fn pin() {
+    impl<T: Unpin + BuildStr + core::ops::Deref> BuildStr for std::pin::Pin<T> {
         fn to_build_string(&self) -> String {
-            format!("core::time::Duration::new({}, {})", self.as_secs(), self.subsec_nanos())
+            // SAFETY: std::pin::Pin<T> is repr(transparent), so we can safely downcast it
+            let ptr: &T = unsafe { std::mem::transmute(self) };
+            format!("std::pin::Pin::new({})", ptr.to_build_string())
         }
     }
+}
+
+fn time() {
+
 }
 
 }

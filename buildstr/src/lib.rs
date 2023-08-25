@@ -3,12 +3,6 @@ pub use buildstr_derive::BuildStr;
 
 pub use buildstr_derive::impl_buildstr;
 
-#[cfg(feature = "prelude")]
-mod primitives;
-
-#[cfg(feature = "prelude")]
-mod string;
-
 extern crate self as buildstr;
 
 /// Transforms an iterable of a single value to an array-like sequence without the enclosing brackets.
@@ -70,12 +64,35 @@ pub fn __pretty(code: String) -> String {
     prettier_please::unparse_expr(&expr)
 }
 
+macro_rules! impls {
+    ( $($feature:literal => [$($name:ident),*])* ) => {
+        $(
+            $(
+                #[cfg(feature = $feature)]
+                mod $name;
+            )*
+        )*
+    };
+}
+
 impl_buildstr!(BuildStr);
 
-impl<T: Unpin + BuildStr + core::ops::Deref> BuildStr for std::pin::Pin<T> {
-    fn to_build_string(&self) -> String {
-        // SAFETY: std::pin::Pin<T> is repr(transparent), so we can safely downcast it
-        let ptr: &T = unsafe { std::mem::transmute(self) };
-        format!("std::pin::Pin::new({})", ptr.to_build_string())
-    }
+impls! {
+    "prelude" => [
+        primitive,
+        string
+    ]
+    "num" => [num]
+    "ops" => [ops]
+    "extra" => [
+        cmp,
+        convert,
+        ffi,
+        fmt,
+        marker,
+        net,
+        path,
+        process,
+        time
+    ]
 }
