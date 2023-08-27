@@ -1,2 +1,3 @@
 [workspace]
 members = ["buildstr_derive", "buildstr"]
+resolver = "2"

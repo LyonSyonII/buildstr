@@ -19,7 +19,6 @@ extern crate self as buildstr;
 macro_rules! array_to_build_string {
     ($array:expr) => {
         {
-            // TODO: Test fails, why?
             let mut s = String::new();
             let array = $array;
             let array = array.iter().map(|x| x.to_build_string());
@@ -57,12 +56,6 @@ macro_rules! map_to_build_string {
     }};
 }
 
-#[cfg(feature = "pretty")]
-#[doc(hidden)]
-pub fn __pretty(code: String) -> String {
-    let expr = syn::parse_str(&code).unwrap();
-    prettier_please::unparse_expr(&expr)
-}
 
 macro_rules! impls {
     ( $($feature:literal => [$($name:ident),*])* ) => {
@@ -95,4 +88,19 @@ impls! {
         process,
         time
     ]
+}
+
+pub mod __private {
+    #[cfg(feature = "pretty")]
+    #[doc(hidden)]
+    pub fn __pretty(code: String) -> String {
+        let expr = syn::parse_str(&code).unwrap();
+        prettier_please::unparse_expr(&expr)
+    }
+
+    pub fn __str_to_tokens(s: String) -> proc_macro2::TokenStream {
+        s.parse().unwrap()
+    }
+
+    pub use proc_macro2::TokenStream;
 }

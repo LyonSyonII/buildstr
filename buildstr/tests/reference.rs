@@ -11,7 +11,6 @@ fn simple() {
     assert_eq!(BuildStr::to_build_string(&o), "5i32");
     assert_eq!(BuildStr::to_build_string(&r), "&5i32");
 
-    
     assert_eq!((&o).to_build_string(), "5i32");
     assert_eq!((&r).to_build_string(), "&5i32");
 }
@@ -25,7 +24,10 @@ fn r#struct() {
     }
 
     let s = String::from("patata");
-    let r = Ref { ptr: &s, owned: s.clone() };
+    let r = Ref {
+        ptr: &s,
+        owned: s.clone(),
+    };
     assert_eq!(r.to_build_string(), "Ref{ptr:&std::string::String::from(\"patata\"),owned:std::string::String::from(\"patata\"),}");
 }
 
@@ -39,8 +41,14 @@ fn r#enum() {
 
     let s = String::from("patata");
     let r = Ref::Ptr(&s);
-    assert_eq!(r.to_build_string(), "Ref::Ptr(&std::string::String::from(\"patata\"),)");
+    assert_eq!(
+        r.to_build_string(),
+        "Ref::Ptr(&std::string::String::from(\"patata\"),)"
+    );
     let r = Ref::Owned(s.clone());
-    assert_eq!(r.to_build_string(), "Ref::Owned(std::string::String::from(\"patata\"),)");
+    assert_eq!(
+        r.to_build_string(),
+        "Ref::Owned(std::string::String::from(\"patata\"),)"
+    );
 }
 // (\w*\.?\w+)\.to_build_string\(\)

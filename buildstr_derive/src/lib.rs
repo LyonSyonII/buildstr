@@ -1,20 +1,23 @@
 use proc_macro::TokenStream;
+
+#[cfg(feature = "derive")]
 use quote::{quote, quote_spanned};
+#[cfg(feature = "derive")]
 use syn::spanned::Spanned;
 
 /// Derives the `BuildStr` trait for a `struct` or `enum`.
-/// 
+///
 /// All types in the struct must have an associated function called `to_build_string`.<br>
 /// This function is already implemented for all common std types.
-/// 
+///
 /// *If the function is not available, check that you have enabled the corresponding feature.*
-/// 
+///
 /// To implement it for foreign types, use [`impl_buildstr!`](crate::impl_buildstr).
-/// 
+///
 /// # Examples
 /// ```
 /// use buildstr::BuildStr;
-/// /// 
+/// ///
 /// #[derive(BuildStr)]
 /// struct Person {
 ///     name: String,
@@ -46,7 +49,7 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
     let body = match input.data {
         syn::Data::Struct(ref s) => parse_struct(s, &name),
         syn::Data::Enum(e) => parse_enum(e, &name),
-        syn::Data::Union(u) => panic!("Unions are not supported"),
+        syn::Data::Union(_) => panic!("Unions are not supported"),
     };
 
     quote! {
@@ -60,6 +63,7 @@ pub fn buildstr(input: TokenStream) -> TokenStream {
     .into()
 }
 
+#[cfg(feature = "derive")]
 fn parse_enum(e: syn::DataEnum, name: &syn::Ident) -> proc_macro2::TokenStream {
     let variants = e.variants.iter().map(|v| {
         let variant = &v.ident;
@@ -110,6 +114,7 @@ fn parse_enum(e: syn::DataEnum, name: &syn::Ident) -> proc_macro2::TokenStream {
     }
 }
 
+#[cfg(feature = "derive")]
 fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStream {
     match s.fields {
         syn::Fields::Named(ref fields) => {
@@ -187,52 +192,53 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
     let name = input.to_string();
     let mut out = stringify! {
         /// Trait for getting a string representation of the builder of a type.
-        /// 
+        ///
         /// Supports all std types, arbitrary structs and enums.<br>
         /// Unions are *not* supported, you must implement `BuildStr` manually.
-        /// 
+        ///
         /// Useful for macros that generate values at compile time, like parsers.
-        /// 
+        ///
         /// If you want a pretty output, check the [`Pretty`](crate::Pretty) trait.
-        /// 
+        ///
         /// To implement it for foreign types, use [`impl_buildstr!`](crate::impl_buildstr).
-        /// 
+        ///
         /// # Examples
         /// ```
         /// use buildstr::BuildStr;
-        ///         /// 
+        ///         ///
         /// #[derive(BuildStr)]
         /// struct Person {
         ///     name: String,
         ///     age: u8,
         ///     balance: f64,
         /// }
-        /// 
+        ///
         /// let person = Person {
         ///     name: "John".to_string(),
         ///     age: 30,
-        ///     balance: 1000.   
+        ///     balance: 1000.
         /// };
         /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
         /// ```
         pub trait BuildStr {
-            /// Trait for getting a string representation of the builder of a type.
-            /// 
+            /// Gets a string representation of the builder of a type.
+            ///
             /// Useful for macros that generate values at compile time, like parsers.
-            /// 
+            ///
             /// If you want a pretty output, check the [`Pretty`](crate::Pretty) trait.
-            /// 
+            ///
+            /// If you want to get the TokenStream directly, use [`to_build_tokens`](Self::to_build_tokens).
             /// # Examples
             /// ```
             /// use buildstr::BuildStr;
-            ///             /// 
+            ///             ///
             /// #[derive(BuildStr)]
             /// struct Person {
             ///     name: String,
             ///     age: u8,
             ///     balance: f64,
             /// }
-            /// 
+            ///
             /// let person = Person {
             ///     name: "John".to_string(),
             ///     age: 30,
@@ -241,9 +247,45 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
             /// ```
             fn to_build_string(&self) -> String;
+
+            $to_build_tokens
         }
     }
     .to_owned();
+
+    if cfg!(feature = "proc-macro") {
+        let to = stringify! {
+            /// Gets the TokenStream representation of the builder of a type.
+            ///
+            /// Useful for macros that generate values at compile time, like parsers.
+            ///
+            /// If you want to get a String, use [`to_build_string`](Self::to_build_string).
+            /// # Examples
+            /// ```
+            /// use buildstr::BuildStr;
+            ///             ///
+            /// #[derive(BuildStr)]
+            /// struct Person {
+            ///     name: String,
+            ///     age: u8,
+            ///     balance: f64,
+            /// }
+            ///
+            /// let person = Person {
+            ///     name: "John".to_string(),
+            ///     age: 30,
+            ///     balance: 1000.
+            /// };
+            /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+            /// ```
+            fn to_build_tokens(&self) -> buildstr::__private::TokenStream {
+                buildstr::__private::__str_to_tokens(self.to_build_string())
+            }
+        };
+        out = out.replace("$to_build_tokens", to);
+    } else {
+        out = out.replace("$to_build_tokens", "");
+    }
 
     macro_rules! add_impls {
         ( $($feature:literal => [$($name:ident),*])* ) => {
@@ -268,8 +310,6 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             reference
         ]
         "collections" => [collections]
-        "num" => [num]
-        "ops" => [ops]
         "extra" => [
             borrow,
             cmp,
@@ -282,6 +322,8 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             marker,
             mem,
             net,
+            num,
+            ops,
             panic,
             pin,
             ffi
@@ -312,7 +354,7 @@ fn pretty() -> &'static str {
         }
         impl<T: BuildStr> Pretty for T {
             fn to_pretty_build_string(&self) -> String {
-                buildstr::__pretty((&self).to_build_string())
+                buildstr::__private::__pretty((&self).to_build_string())
             }
         }
     }
@@ -607,7 +649,7 @@ fn cell() {
     impl <T: BuildStr> BuildStr for core::cell::OnceCell<T> {
         fn to_build_string(&self) -> String {
             if let Some(v) = self.get() {
-                format!("{{ 
+                format!("{{
                     let cell = core::cell::OnceCell::new(); 
                     let _ = cell.set({});
                     cell
@@ -737,7 +779,7 @@ fn mem() {
 }
 
 fn net() {
-    
+
 }
 
 fn num() {

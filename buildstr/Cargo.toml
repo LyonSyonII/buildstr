@@ -11,16 +11,17 @@ authors = ["Liam Garriga <liam@garriga.dev>"]
 
 [dependencies]
 buildstr_derive = { version = "0.1.0", path = "../buildstr_derive" }
-syn = { version = "2.0.29", optional = true, features = ["parsing"] }
+syn = { version = "2.0.29", optional = true, features = ["parsing"], default-features = false }
 prettier-please = { version = "0.2.0", optional = true }
+proc-macro2 = { version = "1.0.66", optional = true}
 
 [features]
 default = ["derive", "prelude", "collections", "extra", "pretty"]
 derive = ["buildstr_derive/derive"]
+proc-macro = ["buildstr_derive/proc-macro", "proc-macro2"]
 
 pretty = ["syn", "prettier-please", "buildstr_derive/pretty"]
 
 prelude = ["buildstr_derive/prelude"]
 collections = ["buildstr_derive/collections"]
 extra = ["buildstr_derive/extra"]
-ffi = ["buildstr_derive/ffi"]
