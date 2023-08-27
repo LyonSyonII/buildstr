@@ -43,7 +43,9 @@ fn constraint() {
 #[test]
 fn r#where() {
     #[derive(BuildStr)]
-    struct Generic<T>(T) where T: Clone;
+    struct Generic<T>(T)
+    where
+        T: Clone;
     let g = Generic(5);
     assert_eq!(g.to_build_string(), "Generic(5i32,)");
 }

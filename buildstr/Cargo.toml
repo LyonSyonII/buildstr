@@ -25,3 +25,7 @@ pretty = ["syn", "prettier-please", "buildstr_derive/pretty"]
 prelude = ["buildstr_derive/prelude"]
 collections = ["buildstr_derive/collections"]
 extra = ["buildstr_derive/extra"]
+
+[[test]]
+name = "proc_macro"
+required-features = ["proc-macro"]

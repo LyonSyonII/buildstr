@@ -18,7 +18,7 @@ fn unnamed() {
     enum Color {
         Grayscale(u8),
         Rgb(u8, u8, u8),
-        Rgb128(&'static u128, &'static u128, &'static u128)
+        Rgb128(&'static u128, &'static u128, &'static u128),
     }
 
     assert_eq!(
@@ -42,11 +42,10 @@ fn named() {
         Dog { name: String, age: u8 },
         Cat { name: String, age: u8 },
     }
-
     assert_eq!(
         Animals::Dog {
             name: "Fido".to_string(),
-            age: 3
+            age: 3,
         }
         .to_build_string(),
         "Animals::Dog{name:std::string::String::from(\"Fido\"),age:3u8,}"

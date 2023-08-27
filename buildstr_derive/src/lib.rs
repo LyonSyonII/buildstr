@@ -259,25 +259,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             ///
             /// Useful for macros that generate values at compile time, like parsers.
             ///
-            /// If you want to get a String, use [`to_build_string`](Self::to_build_string).
-            /// # Examples
-            /// ```
-            /// use buildstr::BuildStr;
-            ///             ///
-            /// #[derive(BuildStr)]
-            /// struct Person {
-            ///     name: String,
-            ///     age: u8,
-            ///     balance: f64,
-            /// }
-            ///
-            /// let person = Person {
-            ///     name: "John".to_string(),
-            ///     age: 30,
-            ///     balance: 1000.
-            /// };
-            /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
-            /// ```
+            /// For more information see [`to_build_string`](Self::to_build_string).
             fn to_build_tokens(&self) -> buildstr::__private::TokenStream {
                 buildstr::__private::__str_to_tokens(self.to_build_string())
             }
