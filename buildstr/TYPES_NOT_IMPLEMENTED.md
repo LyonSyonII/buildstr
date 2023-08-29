@@ -14,7 +14,14 @@ The types listed here have no way to be built by themselves, and are therefore n
 - `std::net::UpdSocket`  
   Same as TcpListener.
 
+- `core::ptr::NonNull<T>`
+  All operations on `NonNull` are unsafe, so `BuildStr` cannot account for all situations.  
+  Instead of implementing for the "happy path" (valid pointer), it makes more sense if each user implements it depending on the context.
+
 ## Opaque
+- `std::alloc::LayoutError`
+- `std::arch::*::__*`
+  All types except `std::arch::x86_64::CpuidResult`
 - `std::any::TypeId`
 - `std::backtrace::Backtrace`
 - `std::cell::Ref<'_, T>`
@@ -50,6 +57,10 @@ The types listed here have no way to be built by themselves, and are therefore n
 - `std::process::ChildStderr`
 - `std::process::ChildStdin`
 - `std::process::ChildStdout`
+- `std::str::ParseBoolError`
+- `std::str::Utf8Error`
+- `std::string::FromUtf16Error`
+- `std::string::FromUtf8Error`
 
 
 ## Iterator
@@ -58,6 +69,7 @@ Building the iterator would need to consume the source, which is not possible wi
 - `std::iter::*`
 - `std::net::Incoming<'_>`
 - `std::net::IntoIncoming<'_>`
+- `std::slice::*`
 
 ## Unstable
 - `std::ascii::Char`
@@ -77,6 +89,7 @@ Building the iterator would need to consume the source, which is not possible wi
 - `std::ops::GeneratorState<Y, R>`
 - `std::ops::Yeet<T>`
 - `std::panic::BacktraceStyle`
+- `std::ptr::DynMetadata<T>`
 
 ## Deprecated
 - `core::hash::SipHasher`

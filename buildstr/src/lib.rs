@@ -65,24 +65,29 @@ macro_rules! impls {
     };
 }
 
+// Generic impls
 impl_buildstr!(BuildStr);
 
+// Specific impls
 impls! {
     "prelude" => [
         primitive,
         string
     ]
-    "num" => [num]
-    "ops" => [ops]
     "extra" => [
+        alloc,
+        arch,
         cmp,
         convert,
         ffi,
         fmt,
         marker,
         net,
+        num,
+        ops,
         path,
         process,
+        str,
         time
     ]
 }
@@ -96,10 +101,10 @@ pub mod __private {
     }
 
     #[cfg(feature = "proc-macro")]
+    pub use proc_macro2::TokenStream;
+
+    #[cfg(feature = "proc-macro")]
     pub fn __str_to_tokens(s: String) -> proc_macro2::TokenStream {
         s.parse().unwrap()
     }
-
-    #[cfg(feature = "proc-macro")]
-    pub use proc_macro2::TokenStream;
 }

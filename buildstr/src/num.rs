@@ -1,3 +1,5 @@
+use crate::BuildStr;
+
 impl BuildStr for core::num::FpCategory {
     fn to_build_string(&self) -> String {
         match self {

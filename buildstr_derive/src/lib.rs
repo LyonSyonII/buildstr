@@ -291,10 +291,10 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             tuple,
             reference
         ]
-        "collections" => [collections]
         "extra" => [
             borrow,
             cmp,
+            collections,
             convert,
             time,
             cell,

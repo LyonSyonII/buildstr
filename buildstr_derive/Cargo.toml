@@ -14,14 +14,12 @@ prettier-please = { version = "0.2.0", optional = true }
 [features]
 derive = ["quote", "syn", "proc-macro2"]
 
-proc-macro = ["proc-macro2"]
+proc-macro = []
 
 pretty = []
 
 prelude = []
-collections = []
 extra = []
-ffi = []
 
 [dev-dependencies]
 num-bigint = "0.4.4"

@@ -1,5 +1,10 @@
 use crate::BuildStr;
 
+impl BuildStr for bool {
+    fn to_build_string(&self) -> String {
+        format!("{:?}", self)
+    }
+}
 impl BuildStr for char {
     fn to_build_string(&self) -> String {
         format!("{:?}", self)
@@ -8,11 +13,6 @@ impl BuildStr for char {
 impl BuildStr for &str {
     fn to_build_string(&self) -> String {
         format!("\"{self}\"")
-    }
-}
-impl BuildStr for bool {
-    fn to_build_string(&self) -> String {
-        format!("{:?}", self)
     }
 }
 impl BuildStr for u8 {
