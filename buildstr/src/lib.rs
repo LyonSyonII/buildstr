@@ -76,7 +76,10 @@ impls! {
     ]
     "extra" => [
         alloc,
+        any,
         arch,
+        array,
+        ascii,
         cmp,
         convert,
         ffi,
@@ -104,7 +107,24 @@ pub mod __private {
     pub use proc_macro2::TokenStream;
 
     #[cfg(feature = "proc-macro")]
-    pub fn __str_to_tokens(s: String) -> proc_macro2::TokenStream {
+    pub fn __str_to_tokens(s: String) -> TokenStream {
         s.parse().unwrap()
     }
+
+    pub(crate) mod unescape;
+
+/*     pub(crate) fn unscape_str(haystack: impl AsRef<str>) -> String {
+        let _ = "\x9d".parse::<char>().unwrap();
+        let chars = '\x00'..='\x7f';
+        let mut patterns = vec![
+            "\\n".into(), "\\t".into(), "\\r".into(), "\\0".into(), "\\'".into()
+        ];
+        patterns.extend(chars.clone().map(|c| c.escape_default().to_string()));
+        let mut replace_with = vec![
+            "\n".into(), "\t".into(), "\r".into(), "\0".into(), "\'".into(),
+        ];
+        replace_with.extend(chars.map(|c| c.to_string()));
+        let c = aho_corasick::AhoCorasick::new(patterns).unwrap();
+        c.replace_all(haystack.as_ref(), &replace_with)
+    } */
 }

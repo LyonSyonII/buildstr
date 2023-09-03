@@ -348,8 +348,8 @@ fn option() {
     impl<T: BuildStr> BuildStr for Option<T> {
         fn to_build_string(&self) -> String {
             match self {
-                Some(s) => format!("Some({})", (&s).to_build_string()),
-                None => std::string::String::from("None"),
+                Some(s) => format!("core::option::Some({})", s.to_build_string()),
+                None => std::string::String::from("core::option::None"),
             }
         }
     }
@@ -359,8 +359,8 @@ fn result() {
     impl<T, E> BuildStr for Result<T, E> where T: BuildStr, E: BuildStr {
         fn to_build_string(&self) -> String {
             match self {
-                Ok(s) => format!("Ok({})", (&s).to_build_string()),
-                Err(s) => format!("Err({})", (&s).to_build_string()),
+                Ok(s) => format!("core::result::Result::Ok({})", s.to_build_string()),
+                Err(s) => format!("core::result::Result::Err({})", s.to_build_string()),
             }
         }
     }
