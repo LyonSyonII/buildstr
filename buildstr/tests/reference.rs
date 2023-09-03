@@ -28,7 +28,7 @@ fn r#struct() {
         ptr: &s,
         owned: s.clone(),
     };
-    assert_eq!(r.to_build_string(), "Ref{ptr:&std::string::String::from(\"patata\"),owned:std::string::String::from(\"patata\"),}");
+    assert_eq!(r.to_build_string(), "Ref{ptr:&::std::string::String::from(\"patata\"),owned:::std::string::String::from(\"patata\"),}");
 }
 
 #[test]
@@ -43,12 +43,12 @@ fn r#enum() {
     let r = Ref::Ptr(&s);
     assert_eq!(
         r.to_build_string(),
-        "Ref::Ptr(&std::string::String::from(\"patata\"),)"
+        "Ref::Ptr(&::std::string::String::from(\"patata\"),)"
     );
     let r = Ref::Owned(s.clone());
     assert_eq!(
         r.to_build_string(),
-        "Ref::Owned(std::string::String::from(\"patata\"),)"
+        "Ref::Owned(::std::string::String::from(\"patata\"),)"
     );
 }
 // (\w*\.?\w+)\.to_build_string\(\)

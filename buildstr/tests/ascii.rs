@@ -1,4 +1,4 @@
-use core::ascii::escape_default as e;
+use ::core::ascii::escape_default as e;
 
 use buildstr::BuildStr;
 

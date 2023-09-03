@@ -4,13 +4,13 @@ use crate::BuildStr;
 mod x86_64 {
     use super::*;
 
-    impl BuildStr for std::arch::x86_64::CpuidResult {
+    impl BuildStr for ::std::arch::x86_64::CpuidResult {
         fn to_build_string(&self) -> String {
             let eax = self.eax;
             let ebx = self.ebx;
             let ecx = self.ecx;
             let edx = self.edx;
-            format!("std::arch::x86_64::CpuidResult{{eax:{eax},ebx:{ebx},ecx:{ecx},edx:{edx}}}")
+            format!("::std::arch::x86_64::CpuidResult{{eax:{eax},ebx:{ebx},ecx:{ecx},edx:{edx}}}")
         }
     }
 }
@@ -19,13 +19,13 @@ mod x86_64 {
 mod x86 {
     use super::*;
 
-    impl BuildStr for std::arch::x86::CpuidResult {
+    impl BuildStr for ::std::arch::x86::CpuidResult {
         fn to_build_string(&self) -> String {
             let eax = self.eax;
             let ebx = self.ebx;
             let ecx = self.ecx;
             let edx = self.edx;
-            format!("std::arch::x86::CpuidResult{{eax:{eax},ebx:{ebx},ecx:{ecx},edx:{edx}}}")
+            format!("::std::arch::x86::CpuidResult{{eax:{eax},ebx:{ebx},ecx:{ecx},edx:{edx}}}")
         }
     }
 }

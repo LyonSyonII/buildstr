@@ -25,6 +25,8 @@ The types listed here have no way to be built by themselves, and are therefore n
 - `std::any::TypeId`
 - `std::backtrace::Backtrace`
 - `std::backtrace::BacktraceStatus`
+- `std::cell::BorrowError`
+- `std::cell::BorrowMutError`
 - `std::cell::Ref<'_, T>`
 - `std::cell::RefMut<'_, T>`
 

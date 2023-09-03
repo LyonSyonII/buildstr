@@ -1,6 +1,6 @@
 use crate::BuildStr;
 
-impl BuildStr for std::alloc::Layout {
+impl BuildStr for ::std::alloc::Layout {
     fn to_build_string(&self) -> String {
         let size = self.size();
         let align = self.align();
@@ -9,8 +9,8 @@ impl BuildStr for std::alloc::Layout {
     }
 }
 
-impl BuildStr for std::alloc::System {
+impl BuildStr for ::std::alloc::System {
     fn to_build_string(&self) -> String {
-        "std::alloc::System".into()
+        "::std::alloc::System".into()
     }
 }

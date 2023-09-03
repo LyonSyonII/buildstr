@@ -11,7 +11,7 @@ fn into_iter() {
 
 #[test]
 fn try_from_slice_error() {
-    let err: Result<[(); 1], std::array::TryFromSliceError> =
-        core::convert::TryInto::<[(); 1]>::try_into(&[] as &[()]);
-    assert_eq!(err.to_build_string(), "core::result::Result::Err(core::convert::TryInto::<[();1]>::try_into(&[]as&[()]).unwrap_err())");
+    let err: Result<[(); 1], ::std::array::TryFromSliceError> =
+        ::core::convert::TryInto::<[(); 1]>::try_into(&[] as &[()]);
+    assert_eq!(err.to_build_string(), "::core::result::Result::Err(::core::convert::TryInto::<[();1]>::try_into(&[]as&[()]).unwrap_err())");
 }

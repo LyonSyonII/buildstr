@@ -218,7 +218,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         ///     age: 30,
         ///     balance: 1000.
         /// };
-        /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+        /// assert_eq!((&person).to_build_string(), "Person{name:::std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
         /// ```
         pub trait BuildStr {
             /// Gets a string representation of the builder of a type.
@@ -244,7 +244,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             ///     age: 30,
             ///     balance: 1000.
             /// };
-            /// assert_eq!((&person).to_build_string(), "Person{name:std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+            /// assert_eq!((&person).to_build_string(), "Person{name:::std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
             /// ```
             fn to_build_string(&self) -> String;
 
@@ -348,8 +348,8 @@ fn option() {
     impl<T: BuildStr> BuildStr for Option<T> {
         fn to_build_string(&self) -> String {
             match self {
-                Some(s) => format!("core::option::Some({})", s.to_build_string()),
-                None => std::string::String::from("core::option::None"),
+                Some(s) => format!("::core::option::Some({})", s.to_build_string()),
+                None => ::std::string::String::from("::core::option::None"),
             }
         }
     }
@@ -359,8 +359,8 @@ fn result() {
     impl<T, E> BuildStr for Result<T, E> where T: BuildStr, E: BuildStr {
         fn to_build_string(&self) -> String {
             match self {
-                Ok(s) => format!("core::result::Result::Ok({})", s.to_build_string()),
-                Err(s) => format!("core::result::Result::Err({})", s.to_build_string()),
+                Ok(s) => format!("::core::result::Result::Ok({})", s.to_build_string()),
+                Err(s) => format!("::core::result::Result::Err({})", s.to_build_string()),
             }
         }
     }
@@ -375,19 +375,19 @@ fn r#box() {
 }
 
 fn rc() {
-    impl<T: BuildStr> BuildStr for std::rc::Rc<T> {
+    impl<T: BuildStr> BuildStr for ::std::rc::Rc<T> {
         fn to_build_string(&self) -> String {
             format!("Rc::new({})", self.as_ref().to_build_string())
         }
     }
-    impl<T: BuildStr> BuildStr for std::rc::Weak<T> {
+    impl<T: BuildStr> BuildStr for ::std::rc::Weak<T> {
         fn to_build_string(&self) -> String {
             match self.upgrade() {
                 Some(s) => format!(
-                    "std::rc::Rc::downgrade(&std::rc::Rc::new({}))",
+                    "::std::rc::Rc::downgrade(&::std::rc::Rc::new({}))",
                     s.as_ref().to_build_string()
                 ),
-                None => std::string::String::from("std::rc::Weak::new()"),
+                None => ::std::string::String::from("::std::rc::Weak::new()"),
             }
         }
     }
@@ -605,109 +605,102 @@ fn reference() {
 }
 
 fn borrow() {
-    impl<T: BuildStr + Clone> BuildStr for std::borrow::Cow<'_, T> {
-        fn to_build_string(&self) -> String {
-            match self {
-                std::borrow::Cow::Borrowed(b) => format!("std::borrow::Cow::Borrowed({})", b.to_build_string()),
-                std::borrow::Cow::Owned(o) => format!("std::borrow::Cow::Owned({})", o.to_build_string()),
-            }
-        }
-    }
+
 }
 
 fn cell() {
-    impl <T: BuildStr> BuildStr for core::cell::Cell<T> {
+    impl <T: BuildStr> BuildStr for ::core::cell::Cell<T> {
         fn to_build_string(&self) -> String {
             let v = self.as_ptr() as *const T;
             // SAFETY: The pointer must be valid, as the cell is always initialized
             if let Some(v) = unsafe { v.as_ref() } {
-                format!("core::cell::Cell::new({})", (&v).to_build_string())
+                format!("::core::cell::Cell::new({})", (&v).to_build_string())
             } else {
-                panic!("Invalid pointer in core::cell::Cell, can't convert to BuildStr");
+                panic!("Invalid pointer in ::core::cell::Cell, can't convert to BuildStr");
             }
         }
     }
     // TODO: Needs testing
-    impl <T: BuildStr> BuildStr for core::cell::OnceCell<T> {
+    impl <T: BuildStr> BuildStr for ::core::cell::OnceCell<T> {
         fn to_build_string(&self) -> String {
             if let Some(v) = self.get() {
                 format!("{{
-                    let cell = core::cell::OnceCell::new(); 
+                    let cell = ::core::cell::OnceCell::new(); 
                     let _ = cell.set({});
                     cell
-                }}", (&v).to_build_string())
+                }}", v.to_build_string())
             } else {
-                "core::cell::OnceCell::new()".into()
+                "::core::cell::OnceCell::new()".into()
             }
         }
     }
-    impl <T: BuildStr> BuildStr for core::cell::RefCell<T> {
+    impl <T: BuildStr> BuildStr for ::core::cell::RefCell<T> {
         fn to_build_string(&self) -> String {
-            format!("core::cell::RefCell::new({})", self.borrow().to_build_string())
+            format!("::core::cell::RefCell::new({})", self.borrow().to_build_string())
         }
     }
     // TODO: Needs testing
-    impl <T: BuildStr> BuildStr for core::cell::UnsafeCell<T> {
+    impl <T: BuildStr> BuildStr for ::core::cell::UnsafeCell<T> {
         fn to_build_string(&self) -> String {
             let v = self.get() as *const T;
             // SAFETY: The pointer must be valid, as the cell is always initialized
             if let Some(v) = unsafe { v.as_ref() } {
-                format!("core::cell::UnsafeCell::new({})", (&v).to_build_string())
+                format!("::core::cell::UnsafeCell::new({})", v.to_build_string())
             } else {
-                panic!("Invalid pointer in core::cell::UnsafeCell, can't convert to BuildStr");
+                panic!("Invalid pointer in ::core::cell::UnsafeCell, can't convert to BuildStr");
             }
         }
     }
 }
 
 fn collections() {
-    impl<K, V> BuildStr for std::collections::BTreeMap<K, V> where K: BuildStr + core::cmp::Ord, V: BuildStr {
+    impl<K, V> BuildStr for ::std::collections::BTreeMap<K, V> where K: BuildStr + ::core::cmp::Ord, V: BuildStr {
         fn to_build_string(&self) -> String {
             format!(
-                "std::collections::BTreeMap::from_iter([{}])",
+                "::std::collections::BTreeMap::from_iter([{}])",
                 buildstr::map_to_build_string!(self)
             )
         }
     }
-    impl<T: BuildStr> BuildStr for std::collections::BTreeSet<T> {
+    impl<T: BuildStr> BuildStr for ::std::collections::BTreeSet<T> {
         fn to_build_string(&self) -> String {
             format!(
-                "std::collections::BTreeSet::from_iter([{}])",
+                "::std::collections::BTreeSet::from_iter([{}])",
                 buildstr::array_to_build_string!(self)
             )
         }
     }
-    impl<T: BuildStr> BuildStr for std::collections::BinaryHeap<T> {
+    impl<T: BuildStr> BuildStr for ::std::collections::BinaryHeap<T> {
         fn to_build_string(&self) -> String {
-            format!("std::collections::BinaryHeap::from_iter([{}])", buildstr::array_to_build_string!(self))
+            format!("::std::collections::BinaryHeap::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-    impl<K, V> BuildStr for std::collections::HashMap<K, V> where K: BuildStr, V: BuildStr {
+    impl<K, V> BuildStr for ::std::collections::HashMap<K, V> where K: BuildStr, V: BuildStr {
         fn to_build_string(&self) -> String {
-            format!("std::collections::HashMap::from_iter([{}])", buildstr::map_to_build_string!(self))
+            format!("::std::collections::HashMap::from_iter([{}])", buildstr::map_to_build_string!(self))
         }
     }
-    impl<T: BuildStr> BuildStr for std::collections::HashSet<T> {
+    impl<T: BuildStr> BuildStr for ::std::collections::HashSet<T> {
         fn to_build_string(&self) -> String {
-            format!("std::collections::HashSet::from_iter([{}])", buildstr::array_to_build_string!(self))
+            format!("::std::collections::HashSet::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-    impl<T: BuildStr> BuildStr for std::collections::LinkedList<T> {
+    impl<T: BuildStr> BuildStr for ::std::collections::LinkedList<T> {
         fn to_build_string(&self) -> String {
-            format!("std::collections::LinkedList::from_iter([{}])", buildstr::array_to_build_string!(self))
+            format!("::std::collections::LinkedList::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-    impl<T: BuildStr> BuildStr for std::collections::VecDeque<T> {
+    impl<T: BuildStr> BuildStr for ::std::collections::VecDeque<T> {
         fn to_build_string(&self) -> String {
-            format!("std::collections::VecDeque::from_iter([{}])", buildstr::array_to_build_string!(self))
+            format!("::std::collections::VecDeque::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
 }
 
 fn cmp() {
-    impl<T: BuildStr> BuildStr for core::cmp::Reverse<T> {
+    impl<T: BuildStr> BuildStr for ::core::cmp::Reverse<T> {
         fn to_build_string(&self) -> String {
-            format!("core::cmp::Reverse({})", self.0.to_build_string())
+            format!("::core::cmp::Reverse({})", self.0.to_build_string())
         }
     }
 }
@@ -721,41 +714,41 @@ fn ffi() {
 }
 
 fn fmt() {
-    impl BuildStr for core::fmt::Arguments<'_> {
+    impl BuildStr for ::core::fmt::Arguments<'_> {
         fn to_build_string(&self) -> String {
-            format!("core::format_args!(\"{}\")", self)
+            format!("::core::format_args!(\"{}\")", self)
         }
     }
 }
 
 fn future() {
-    impl<T> BuildStr for core::future::Pending<T> {
+    impl<T> BuildStr for ::core::future::Pending<T> {
         fn to_build_string(&self) -> String {
-            format!("core::future::pending::<{}>()", core::any::type_name::<T>())
+            format!("::core::future::pending::<{}>()", ::core::any::type_name::<T>())
         }
     }
 }
 
 fn hash() {
-    impl<H> BuildStr for core::hash::BuildHasherDefault<H> {
+    impl<H> BuildStr for ::core::hash::BuildHasherDefault<H> {
         fn to_build_string(&self) -> String {
-            format!("{}::default()", std::any::type_name::<Self>())
+            format!("{}::default()", ::std::any::type_name::<Self>())
         }
     }
 }
 
 fn marker() {
-    impl<T> BuildStr for core::marker::PhantomData<T> {
+    impl<T> BuildStr for ::core::marker::PhantomData<T> {
         fn to_build_string(&self) -> String {
-            format!("core::marker::PhantomData::<{}>", std::any::type_name::<T>())
+            format!("::core::marker::PhantomData::<{}>", ::std::any::type_name::<T>())
         }
     }
 }
 
 fn mem() {
-    impl<T: BuildStr> BuildStr for core::mem::ManuallyDrop<T> {
+    impl<T: BuildStr> BuildStr for ::core::mem::ManuallyDrop<T> {
         fn to_build_string(&self) -> String {
-            format!("core::mem::ManuallyDrop::new({})", (**self).to_build_string())
+            format!("::core::mem::ManuallyDrop::new({})", (**self).to_build_string())
         }
     }
 }
@@ -765,79 +758,79 @@ fn net() {
 }
 
 fn num() {
-    impl<T: BuildStr> BuildStr for core::num::Wrapping<T> {
+    impl<T: BuildStr> BuildStr for ::core::num::Wrapping<T> {
         fn to_build_string(&self) -> String {
-            format!("core::num::Wrapping({})", self.0.to_build_string())
+            format!("::core::num::Wrapping({})", self.0.to_build_string())
         }
     }
 }
 
 fn ops() {
-    impl<T: BuildStr> BuildStr for core::ops::Bound<T> {
+    impl<T: BuildStr> BuildStr for ::core::ops::Bound<T> {
         fn to_build_string(&self) -> String {
             match self {
-                core::ops::Bound::Included(i) => format!("core::ops::Bound::Included({})", i.to_build_string()),
-                core::ops::Bound::Excluded(e) => format!("core::ops::Bound::Excluded({})", e.to_build_string()),
-                core::ops::Bound::Unbounded => "core::ops::Bound::Unbounded".into(),
+                ::core::ops::Bound::Included(i) => format!("::core::ops::Bound::Included({})", i.to_build_string()),
+                ::core::ops::Bound::Excluded(e) => format!("::core::ops::Bound::Excluded({})", e.to_build_string()),
+                ::core::ops::Bound::Unbounded => "::core::ops::Bound::Unbounded".into(),
             }
         }
     }
-    impl<B, C> BuildStr for core::ops::ControlFlow<B, C> where B: BuildStr, C: BuildStr {
+    impl<B, C> BuildStr for ::core::ops::ControlFlow<B, C> where B: BuildStr, C: BuildStr {
         fn to_build_string(&self) -> String {
             match self {
-                core::ops::ControlFlow::Continue(c) => format!("core::ops::ControlFlow::Continue({})", c.to_build_string()),
-                core::ops::ControlFlow::Break(b) => format!("core::ops::ControlFlow::Break({})", b.to_build_string()),
+                ::core::ops::ControlFlow::Continue(c) => format!("::core::ops::ControlFlow::Continue({})", c.to_build_string()),
+                ::core::ops::ControlFlow::Break(b) => format!("::core::ops::ControlFlow::Break({})", b.to_build_string()),
             }
         }
     }
-    impl<Idx: BuildStr> BuildStr for core::ops::Range<Idx> {
+    impl<Idx: BuildStr> BuildStr for ::core::ops::Range<Idx> {
         fn to_build_string(&self) -> String {
             let start = self.start.to_build_string();
             let end = self.end.to_build_string();
-            format!("core::ops::Range {{ start: {start}, end: {end} }}")
+            format!("::core::ops::Range{{start:{start},end:{end}}}")
         }
     }
-    impl<Idx: BuildStr> BuildStr for core::ops::RangeFrom<Idx> {
+    impl<Idx: BuildStr> BuildStr for ::core::ops::RangeFrom<Idx> {
         fn to_build_string(&self) -> String {
             let start = self.start.to_build_string();
-            format!("core::ops::RangeFrom {{ start: {start} }}")
+            format!("::core::ops::RangeFrom{{start:{start}}}")
         }
     }
-    impl<Idx: BuildStr> BuildStr for core::ops::RangeInclusive<Idx> {
+    impl<Idx: BuildStr> BuildStr for ::core::ops::RangeInclusive<Idx> {
         fn to_build_string(&self) -> String {
             let start = self.start().to_build_string();
             let end = self.end().to_build_string();
-            format!("core::ops::RangeInclusive {{ start: {start}, end: {end} }}")
+            format!("::core::ops::RangeInclusive{{start:{start},end:{end}}}")
         }
     }
-    impl<Idx: BuildStr> BuildStr for core::ops::RangeTo<Idx> {
+    impl<Idx: BuildStr> BuildStr for ::core::ops::RangeTo<Idx> {
         fn to_build_string(&self) -> String {
             let end = self.end.to_build_string();
-            format!("core::ops::RangeTo {{ end: {end} }}")
+            format!("::core::ops::RangeTo {{end:{end}}}")
         }
     }
-    impl<Idx: BuildStr> BuildStr for core::ops::RangeToInclusive<Idx> {
+    impl<Idx: BuildStr> BuildStr for ::core::ops::RangeToInclusive<Idx> {
         fn to_build_string(&self) -> String {
             let end = self.end.to_build_string();
-            format!("core::ops::RangeToInclusive {{ end: {end} }}")
+            format!("::core::ops::RangeToInclusive{{end:{end}}}")
         }
     }
 }
 
 fn panic() {
-    impl<T: BuildStr> BuildStr for core::panic::AssertUnwindSafe<T> {
+    impl<T: BuildStr> BuildStr for ::core::panic::AssertUnwindSafe<T> {
         fn to_build_string(&self) -> String {
-            format!("core::panic::AssertUnwindSafe({})", self.0.to_build_string())
+            format!("::core::panic::AssertUnwindSafe({})", self.0.to_build_string())
         }
     }
 }
 
 fn pin() {
-    impl<T: Unpin + BuildStr + core::ops::Deref> BuildStr for std::pin::Pin<T> {
+    impl<T: Unpin + BuildStr + ::core::ops::Deref> BuildStr for ::std::pin::Pin<T> {
         fn to_build_string(&self) -> String {
-            // SAFETY: std::pin::Pin<T> is repr(transparent), so we can safely downcast it
-            let ptr: &T = unsafe { std::mem::transmute(self) };
-            format!("std::pin::Pin::new({})", ptr.to_build_string())
+            // SAFETY: ::std::pin::Pin<T> is repr(transparent), so we can safely downcast it
+            let ptr: &T = unsafe { ::std::mem::transmute(self) };
+            format!("::std::pin::Pin::new({})", ptr.to_build_string())
         }
     }
 }

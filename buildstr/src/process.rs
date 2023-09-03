@@ -1,6 +1,6 @@
 use buildstr::BuildStr;
 
-impl BuildStr for std::process::Command {
+impl BuildStr for ::std::process::Command {
     fn to_build_string(&self) -> String {
         let program = self.get_program().to_build_string();
         let args = self.get_args().collect::<Vec<_>>().to_build_string();
@@ -13,7 +13,7 @@ impl BuildStr for std::process::Command {
         }
         let envs = envs.into_iter().map(|(k, v)| (k, v.unwrap())).collect::<Vec<_>>().to_build_string();
         let dir = self.get_current_dir();
-        let mut s = format!("{{std::process::Command::new({program})");
+        let mut s = format!("{{::std::process::Command::new({program})");
         s = format!("{s}.args({args}).envs({envs})");
         if let Some(dir) = dir {
             s = format!("{s}.current_dir({})", dir.to_build_string());

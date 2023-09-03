@@ -6,7 +6,7 @@
 // - Changed `Error` to `UnescapeError` and added explicit enum variants (instead of using `Error::*`).
 
 //! Unescape the given string.
-//! This is the opposite operation of [`std::ascii::escape_default`].
+//! This is the opposite operation of [`::std::ascii::escape_default`].
 
 pub type Result<T> = ::std::result::Result<T, UnescapeError>;
 
@@ -17,8 +17,8 @@ pub enum UnescapeError {
 	ParseIntError { source: ::std::num::ParseIntError, pos: usize },
 }
 
-impl std::fmt::Display for UnescapeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl ::std::fmt::Display for UnescapeError {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
             UnescapeError::IncompleteStr(s) => write!(f, "incomplete str, break at {s}"),
             UnescapeError::InvalidChar { char, pos } => write!(f, "invalid char, {char:?} break at {pos}"),
@@ -27,7 +27,7 @@ impl std::fmt::Display for UnescapeError {
     }
 }
 
-impl std::error::Error for UnescapeError {}
+impl ::std::error::Error for UnescapeError {}
 
 /// Unescaper struct that holds the chars cache for unescaping.
 #[derive(Debug)]
