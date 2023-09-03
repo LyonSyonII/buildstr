@@ -77,7 +77,7 @@ fn parse_enum(e: syn::DataEnum, name: &syn::Ident) -> proc_macro2::TokenStream {
                     #name::#variant { #(#fields),* } => {
                         let mut s = format!("{}::{}{{", stringify!(#name), stringify!(#variant));
                         #(
-                            let f = format!("{}:{},", stringify!(#fields), #fields.to_build_string());
+                            let f = format!("{}: {},", stringify!(#fields), #fields.to_build_string());
                             s.push_str(&f);
                         )*
                         s.push('}');
@@ -121,7 +121,7 @@ fn parse_struct(s: &syn::DataStruct, name: &syn::Ident) -> proc_macro2::TokenStr
             let fields = fields.named.iter().map(|field| {
                 let name = &field.ident;
                 quote_spanned! {field.span()=>
-                    format!("{}:{},", stringify!(#name), (&self.#name).to_build_string())
+                    format!("{}: {},", stringify!(#name), (&self.#name).to_build_string())
                 }
             });
 
@@ -218,7 +218,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
         ///     age: 30,
         ///     balance: 1000.
         /// };
-        /// assert_eq!((&person).to_build_string(), "Person{name:::std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+        /// assert_eq!((&person).to_build_string(), "Person{name: ::std::string::String::from(\"John\"),age: 30u8,balance: 1000f64,}");
         /// ```
         pub trait BuildStr {
             /// Gets a string representation of the builder of a type.
@@ -244,7 +244,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             ///     age: 30,
             ///     balance: 1000.
             /// };
-            /// assert_eq!((&person).to_build_string(), "Person{name:::std::string::String::from(\"John\"),age:30u8,balance:1000f64,}");
+            /// assert_eq!((&person).to_build_string(), "Person{name: ::std::string::String::from(\"John\"),age: 30u8,balance: 1000f64,}");
             /// ```
             fn to_build_string(&self) -> String;
 
@@ -414,7 +414,7 @@ fn array() {
 fn vec() {
     impl<T: BuildStr> BuildStr for Vec<T> {
         fn to_build_string(&self) -> String {
-            format!("vec![{}]", buildstr::array_to_build_string!(self))
+            format!("::std::vec::Vec::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
 }
@@ -607,9 +607,10 @@ fn reference() {
 fn borrow() {
     impl<'a, T: ::std::borrow::ToOwned + ?Sized> BuildStr for ::std::borrow::Cow<'a, T> where <T as ToOwned>::Owned: BuildStr, &'a T: BuildStr {
         fn to_build_string(&self) -> String {
+            let ty = ::std::any::type_name::<T>();
             match self {
-                ::std::borrow::Cow::Borrowed(b) => format!("::std::borrow::Cow::Borrowed({})", (*b).to_build_string()),
-                ::std::borrow::Cow::Owned(o) => format!("::std::borrow::Cow::Owned::<{}>({})", ::std::any::type_name::<T>(), o.to_build_string()),
+                ::std::borrow::Cow::Borrowed(b) => format!("::std::borrow::Cow::Borrowed::<{ty}>({})", (*b).to_build_string()),
+                ::std::borrow::Cow::Owned(o) => format!("::std::borrow::Cow::Owned::<{ty}>({})", o.to_build_string()),
             }
         }
     }

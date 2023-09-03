@@ -28,7 +28,7 @@ fn r#struct() {
         ptr: &s,
         owned: s.clone(),
     };
-    assert_eq!(r.to_build_string(), "Ref{ptr:&::std::string::String::from(\"patata\"),owned:::std::string::String::from(\"patata\"),}");
+    assert_eq!(r.to_build_string(), "Ref{ptr: &::std::string::String::from(\"patata\"),owned: ::std::string::String::from(\"patata\"),}");
 }
 
 #[test]

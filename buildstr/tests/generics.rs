@@ -7,7 +7,7 @@ fn simple() {
         value: T,
     }
     let g = Generic { value: 5 };
-    assert_eq!(g.to_build_string(), "Generic{value:5i32,}");
+    assert_eq!(g.to_build_string(), "Generic{value: 5i32,}");
 }
 
 #[test]
@@ -17,7 +17,7 @@ fn lifetime() {
         value: &'a T,
     }
     let g = Generic { value: &5 };
-    assert_eq!(g.to_build_string(), "Generic{value:&5i32,}");
+    assert_eq!(g.to_build_string(), "Generic{value: &5i32,}");
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn multiple() {
         c: C,
     }
     let g = Generic { a: 5, b: &6, c: 7 };
-    assert_eq!(g.to_build_string(), "Generic{a:5i32,b:&6i32,c:7i32,}");
+    assert_eq!(g.to_build_string(), "Generic{a: 5i32,b: &6i32,c: 7i32,}");
 }
 
 #[test]
