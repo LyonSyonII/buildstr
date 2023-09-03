@@ -605,7 +605,14 @@ fn reference() {
 }
 
 fn borrow() {
-
+    impl<'a, T: ::std::borrow::ToOwned + ?Sized> BuildStr for ::std::borrow::Cow<'a, T> where <T as ToOwned>::Owned: BuildStr, &'a T: BuildStr {
+        fn to_build_string(&self) -> String {
+            match self {
+                ::std::borrow::Cow::Borrowed(b) => format!("::std::borrow::Cow::Borrowed({})", (*b).to_build_string()),
+                ::std::borrow::Cow::Owned(o) => format!("::std::borrow::Cow::Owned::<{}>({})", ::std::any::type_name::<T>(), o.to_build_string()),
+            }
+        }
+    }
 }
 
 fn cell() {
@@ -656,18 +663,12 @@ fn cell() {
 fn collections() {
     impl<K, V> BuildStr for ::std::collections::BTreeMap<K, V> where K: BuildStr + ::core::cmp::Ord, V: BuildStr {
         fn to_build_string(&self) -> String {
-            format!(
-                "::std::collections::BTreeMap::from_iter([{}])",
-                buildstr::map_to_build_string!(self)
-            )
+            format!("::std::collections::BTreeMap::from_iter([{}])", buildstr::map_to_build_string!(self))
         }
     }
     impl<T: BuildStr> BuildStr for ::std::collections::BTreeSet<T> {
         fn to_build_string(&self) -> String {
-            format!(
-                "::std::collections::BTreeSet::from_iter([{}])",
-                buildstr::array_to_build_string!(self)
-            )
+            format!("::std::collections::BTreeSet::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
     impl<T: BuildStr> BuildStr for ::std::collections::BinaryHeap<T> {

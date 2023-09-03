@@ -131,12 +131,3 @@ pub mod __private {
         c.replace_all(haystack.as_ref(), &replace_with)
     } */
 }
-
-impl<'a, T: ::std::borrow::ToOwned + ?Sized> BuildStr for ::std::borrow::Cow<'a, T> where <T as ToOwned>::Owned: BuildStr, &'a T: BuildStr {
-    fn to_build_string(&self) -> String {
-        match self {
-            ::std::borrow::Cow::Borrowed(b) => format!("::std::borrow::Cow::Borrowed({})", (*b).to_build_string()),
-            ::std::borrow::Cow::Owned(o) => format!("::std::borrow::Cow::Owned::<{}>({})", ::std::any::type_name::<T>(), o.to_build_string()),
-        }
-    }
-}
