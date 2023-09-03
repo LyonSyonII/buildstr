@@ -2,6 +2,7 @@ use buildstr::BuildStr;
 
 #[test]
 fn unit() {
+    #[allow(unused)]
     #[derive(BuildStr)]
     enum Fruits {
         Apple,
@@ -37,6 +38,7 @@ fn unnamed() {
 
 #[test]
 fn named() {
+    #[allow(unused)]
     #[derive(BuildStr)]
     enum Animals {
         Dog { name: String, age: u8 },
