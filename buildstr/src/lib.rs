@@ -80,6 +80,8 @@ impls! {
         arch,
         array,
         ascii,
+        borrow,
+        boxed,
         cmp,
         convert,
         ffi,

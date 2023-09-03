@@ -608,8 +608,8 @@ fn borrow() {
     impl<T: BuildStr + Clone> BuildStr for std::borrow::Cow<'_, T> {
         fn to_build_string(&self) -> String {
             match self {
-                std::borrow::Cow::Borrowed(b) => format!("std::borrow::Cow::Borrowed({})", (&b).to_build_string()),
-                std::borrow::Cow::Owned(o) => format!("std::borrow::Cow::Owned({})", (&o).to_build_string()),
+                std::borrow::Cow::Borrowed(b) => format!("std::borrow::Cow::Borrowed({})", b.to_build_string()),
+                std::borrow::Cow::Owned(o) => format!("std::borrow::Cow::Owned({})", o.to_build_string()),
             }
         }
     }
@@ -646,7 +646,7 @@ fn cell() {
             format!("core::cell::RefCell::new({})", self.borrow().to_build_string())
         }
     }
-        // TODO: Needs testing
+    // TODO: Needs testing
     impl <T: BuildStr> BuildStr for core::cell::UnsafeCell<T> {
         fn to_build_string(&self) -> String {
             let v = self.get() as *const T;
@@ -654,7 +654,7 @@ fn cell() {
             if let Some(v) = unsafe { v.as_ref() } {
                 format!("core::cell::UnsafeCell::new({})", (&v).to_build_string())
             } else {
-                panic!("Invalid pointer in core::cell::Cell, can't convert to BuildStr");
+                panic!("Invalid pointer in core::cell::UnsafeCell, can't convert to BuildStr");
             }
         }
     }

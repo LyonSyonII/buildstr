@@ -24,6 +24,7 @@ The types listed here have no way to be built by themselves, and are therefore n
   All types except `std::arch::x86_64::CpuidResult`
 - `std::any::TypeId`
 - `std::backtrace::Backtrace`
+- `std::backtrace::BacktraceStatus`
 - `std::cell::Ref<'_, T>`
 - `std::cell::RefMut<'_, T>`
 
