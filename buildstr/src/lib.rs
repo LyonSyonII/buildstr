@@ -83,6 +83,7 @@ impls! {
         borrow,
         boxed,
         cell,
+        char,
         cmp,
         convert,
         ffi,

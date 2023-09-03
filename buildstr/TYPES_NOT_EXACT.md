@@ -8,6 +8,7 @@ All error-like types are built by forcing the error to happen.
 If you have any issues with these types, consider implementing them yourself.
 
 - `std::array::TryFromSliceError`
+- `std::char::CharTryFromError`
 
 - `core::fmt::Arguments<'_>`
   The `format_args!` macro is internal to the compiler, `buildstr` will convert the arguments to a formatted string and then call `format_args` with a literal.
