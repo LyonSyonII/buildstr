@@ -7,6 +7,7 @@ fn proc_macro() {
         Apple,
         Banana(usize),
         Pear { quantity: usize },
+        Melon(char),
     }
 
     let fruits = vec![
@@ -16,10 +17,17 @@ fn proc_macro() {
     ];
     assert_eq!(
         fruits.to_build_string(),
-        "vec![Fruits::Apple,Fruits::Banana(2usize,),Fruits::Pear{quantity:3usize,},]"
+        "::std::vec::Vec::from_iter([Fruits::Apple,Fruits::Banana(2usize,),Fruits::Pear{quantity: 3usize,},])"
     );
     assert_eq!(
         fruits.to_build_tokens().to_string(),
-        "vec ! [Fruits :: Apple , Fruits :: Banana (2usize ,) , Fruits :: Pear { quantity : 3usize , } ,]"
-    )
+        ":: std :: vec :: Vec :: from_iter ([Fruits :: Apple , Fruits :: Banana (2usize ,) , Fruits :: Pear { quantity : 3usize , } ,])"
+    );
+
+    let melon = Fruits::Melon('\t');
+    assert_eq!(melon.to_build_string(), "Fruits::Melon('\\t',)");
+    assert_eq!(
+        melon.to_build_tokens().to_string(),
+        "Fruits :: Melon ('\\t' ,)"
+    );
 }

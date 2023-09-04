@@ -117,7 +117,7 @@ pub mod __private {
 
     pub(crate) mod unescape;
 
-/*     pub(crate) fn unscape_str(haystack: impl AsRef<str>) -> String {
+    /*     pub(crate) fn unscape_str(haystack: impl AsRef<str>) -> String {
         let _ = "\x9d".parse::<char>().unwrap();
         let chars = '\x00'..='\x7f';
         let mut patterns = vec![

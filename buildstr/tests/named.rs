@@ -41,6 +41,15 @@ pub fn lists() {
         degrees: &["BSc".into(), "MSc".into(), "PhD".into()],
     };
 
-    let _ = Person{name: ::std::string::String::from("Potato"),age:42u8,cars: ::std::vec::Vec::from_iter(["Toyota","Ford","Chevy",]),degrees:&[::std::string::String::from("BSc"),::std::string::String::from("MSc"),::std::string::String::from("PhD"),],};
+    let _ = Person {
+        name: ::std::string::String::from("Potato"),
+        age: 42u8,
+        cars: ::std::vec::Vec::from_iter(["Toyota", "Ford", "Chevy"]),
+        degrees: &[
+            ::std::string::String::from("BSc"),
+            ::std::string::String::from("MSc"),
+            ::std::string::String::from("PhD"),
+        ],
+    };
     assert_eq!(p.to_build_string(), "Person{name: ::std::string::String::from(\"Potato\"),age: 42u8,cars: ::std::vec::Vec::from_iter([\"Toyota\",\"Ford\",\"Chevy\",]),degrees: &[::std::string::String::from(\"BSc\"),::std::string::String::from(\"MSc\"),::std::string::String::from(\"PhD\"),],}");
 }
