@@ -81,9 +81,10 @@ impl Unescaper {
                 continue;
             }
 
-            let c = self.chars.pop().ok_or(Error::IncompleteStr(
-                chars_count - self.chars.len() - 1,
-            ))?;
+            let c = self
+                .chars
+                .pop()
+                .ok_or(Error::IncompleteStr(chars_count - self.chars.len() - 1))?;
             let c = match c {
                 'b' => '\u{0008}',
                 'f' => '\u{000c}',
@@ -139,10 +140,9 @@ impl Unescaper {
             }
         }
 
-        char::from_u32(
-            u32::from(u16::from_str_radix(&unicode, 16)
-                .map_err(|e| Error::ParseInt { source: e, pos: 0 })?),
-        )
+        char::from_u32(u32::from(
+            u16::from_str_radix(&unicode, 16).map_err(|e| Error::ParseInt { source: e, pos: 0 })?,
+        ))
         .ok_or(Error::InvalidChar {
             char: unicode
                 .chars()
@@ -163,8 +163,7 @@ impl Unescaper {
             byte.push(c);
         }
 
-        Ok(u8::from_str_radix(&byte, 16)
-            .map_err(|e| Error::ParseInt { source: e, pos: 0 })? as _)
+        Ok(u8::from_str_radix(&byte, 16).map_err(|e| Error::ParseInt { source: e, pos: 0 })? as _)
     }
 
     // pub fn unescape_octal(&mut self) -> Result<char> {}
@@ -200,8 +199,7 @@ impl Unescaper {
             _ => Err(Error::InvalidChar { char: c, pos: 0 })?,
         }
 
-        Ok(u8::from_str_radix(&octal, 8)
-            .map_err(|e| Error::ParseInt { source: e, pos: 0 })? as _)
+        Ok(u8::from_str_radix(&octal, 8).map_err(|e| Error::ParseInt { source: e, pos: 0 })? as _)
     }
 }
 
@@ -212,10 +210,9 @@ pub fn unescape(s: impl AsRef<str>) -> Result<String> {
 
 pub fn to_char(s: impl AsRef<str>) -> Result<char> {
     let s = unescape(s)?;
-    s.parse().map_err(
-        |c: std::char::ParseCharError| Error::ParseChar {
+    s.parse()
+        .map_err(|c: std::char::ParseCharError| Error::ParseChar {
             kind: c.to_string(),
             pos: 0,
-        },
-    )
+        })
 }
