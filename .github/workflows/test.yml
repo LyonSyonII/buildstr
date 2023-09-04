@@ -31,4 +31,4 @@ jobs:
           cache-on-failure: "true"
       
       - name: Test
-        run: cargo +nightly miri test --all-features
+        run: cargo +nightly-2023-09-04 miri test --all-features
