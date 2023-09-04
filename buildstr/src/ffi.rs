@@ -12,11 +12,11 @@ impl BuildStr for ::std::ffi::CString {
 }
 impl BuildStr for &::std::ffi::OsStr {
     fn to_build_string(&self) -> String {
-        format!("::core::ffi::OsStr::new({:?})", self)
+        format!("::core::ffi::OsStr::new({self:?})")
     }
 }
 impl BuildStr for ::std::ffi::OsString {
     fn to_build_string(&self) -> String {
-        format!("::core::ffi::OsString::from({:?})", self)
+        format!("::core::ffi::OsString::from({self:?})")
     }
 }

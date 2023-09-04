@@ -8,7 +8,7 @@ impl BuildStr for ::std::process::Command {
         let mut removed = Vec::new();
         for i in 0..envs.len() {
             if envs[i].1.is_none() {
-                removed.push(envs.remove(i).0)
+                removed.push(envs.remove(i).0);
             }
         }
         let envs = envs.into_iter().map(|(k, v)| (k, v.unwrap())).collect::<Vec<_>>().to_build_string();

@@ -33,21 +33,21 @@ impl BuildStr for std::char::DecodeUtf16Error {
 
 impl BuildStr for std::char::EscapeDebug {
     fn to_build_string(&self) -> String {
-        let c = crate::__private::unescape::unescape_to_char(self.to_string()).unwrap().to_build_string();
+        let c = crate::__private::unescape::to_char(self.to_string()).unwrap().to_build_string();
         format!("::std::primitive::char::escape_debug({c})")
     }
 }
 
 impl BuildStr for std::char::EscapeDefault {
     fn to_build_string(&self) -> String {
-        let c = crate::__private::unescape::unescape_to_char(self.to_string()).unwrap().to_build_string();
+        let c = crate::__private::unescape::to_char(self.to_string()).unwrap().to_build_string();
         format!("::std::primitive::char::escape_default({c})")
     }
 }
 
 impl BuildStr for std::char::EscapeUnicode {
     fn to_build_string(&self) -> String {
-        let c = crate::__private::unescape::unescape_to_char(self.to_string()).unwrap().to_build_string();
+        let c = crate::__private::unescape::to_char(self.to_string()).unwrap().to_build_string();
         format!("::std::primitive::char::escape_unicode({c})")
     }
 }

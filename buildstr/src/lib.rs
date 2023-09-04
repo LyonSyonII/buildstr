@@ -1,3 +1,7 @@
+#![deny(clippy::all)]
+#![deny(clippy::pedantic)]
+#![allow(clippy::needless_borrow)]
+
 #[cfg(feature = "derive")]
 pub use buildstr_derive::BuildStr;
 
@@ -65,10 +69,8 @@ macro_rules! impls {
     };
 }
 
-// Generic impls
 impl_buildstr!(BuildStr);
 
-// Specific impls
 impls! {
     "prelude" => [
         primitive,
@@ -102,8 +104,8 @@ impls! {
 pub mod __private {
     #[cfg(feature = "pretty")]
     #[doc(hidden)]
-    pub fn __pretty(code: String) -> String {
-        let expr = syn::parse_str(&code).unwrap();
+    pub fn __pretty(code: impl AsRef<str>) -> String {
+        let expr = syn::parse_str(code.as_ref()).unwrap();
         prettier_please::unparse_expr(&expr)
     }
 

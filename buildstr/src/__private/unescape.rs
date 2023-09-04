@@ -9,41 +9,41 @@
 //! Unescape the given string.
 //! This is the opposite operation of [`::std::ascii::escape_default`].
 
-pub type Result<T> = ::std::result::Result<T, UnescapeError>;
+pub type Result<T> = ::std::result::Result<T, Error>;
 
 #[derive(Debug)]
-pub enum UnescapeError {
+pub enum Error {
     IncompleteStr(usize),
     InvalidChar {
         char: char,
         pos: usize,
     },
-    ParseIntError {
+    ParseInt {
         source: ::std::num::ParseIntError,
         pos: usize,
     },
-    ParseCharError {
+    ParseChar {
         kind: String,
         pos: usize,
     },
 }
 
-impl ::std::fmt::Display for UnescapeError {
+impl ::std::fmt::Display for Error {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
-            UnescapeError::IncompleteStr(s) => write!(f, "incomplete str, break at {s}"),
-            UnescapeError::InvalidChar { char, pos } => {
+            Error::IncompleteStr(s) => write!(f, "incomplete str, break at {s}"),
+            Error::InvalidChar { char, pos } => {
                 write!(f, "invalid char, {char:?} break at {pos}")
             }
-            UnescapeError::ParseIntError { pos, .. } => {
+            Error::ParseInt { pos, .. } => {
                 write!(f, "parse int error, break at {pos}")
             }
-            UnescapeError::ParseCharError { kind, .. } => write!(f, "{kind}"),
+            Error::ParseChar { kind, .. } => write!(f, "{kind}"),
         }
     }
 }
 
-impl ::std::error::Error for UnescapeError {}
+impl ::std::error::Error for Error {}
 
 /// Unescaper struct that holds the chars cache for unescaping.
 #[derive(Debug)]
@@ -63,10 +63,10 @@ impl Unescaper {
     pub fn unescape(&mut self) -> Result<String> {
         let chars_count = self.chars.len();
         let offset = |mut e, remaining_count| {
-            let (UnescapeError::IncompleteStr(pos)
-            | UnescapeError::InvalidChar { pos, .. }
-            | UnescapeError::ParseIntError { pos, .. }
-            | UnescapeError::ParseCharError { pos, .. }) = &mut e;
+            let (Error::IncompleteStr(pos)
+            | Error::InvalidChar { pos, .. }
+            | Error::ParseInt { pos, .. }
+            | Error::ParseChar { pos, .. }) = &mut e;
 
             *pos += chars_count - remaining_count - 1;
 
@@ -81,7 +81,7 @@ impl Unescaper {
                 continue;
             }
 
-            let c = self.chars.pop().ok_or(UnescapeError::IncompleteStr(
+            let c = self.chars.pop().ok_or(Error::IncompleteStr(
                 chars_count - self.chars.len() - 1,
             ))?;
             let c = match c {
@@ -114,7 +114,7 @@ impl Unescaper {
 
     // pub fn unescape_unicode(&mut self) -> Result<char> {}
     fn unescape_unicode_internal(&mut self) -> Result<char> {
-        let c = self.chars.pop().ok_or(UnescapeError::IncompleteStr(0))?;
+        let c = self.chars.pop().ok_or(Error::IncompleteStr(0))?;
         let mut unicode = String::new();
 
         // \u + { + regex(d*) + }
@@ -133,17 +133,17 @@ impl Unescaper {
             unicode.push(c);
 
             for i in 0..3 {
-                let c = self.chars.pop().ok_or(UnescapeError::IncompleteStr(i))?;
+                let c = self.chars.pop().ok_or(Error::IncompleteStr(i))?;
 
                 unicode.push(c);
             }
         }
 
         char::from_u32(
-            u16::from_str_radix(&unicode, 16)
-                .map_err(|e| UnescapeError::ParseIntError { source: e, pos: 0 })? as _,
+            u32::from(u16::from_str_radix(&unicode, 16)
+                .map_err(|e| Error::ParseInt { source: e, pos: 0 })?),
         )
-        .ok_or(UnescapeError::InvalidChar {
+        .ok_or(Error::InvalidChar {
             char: unicode
                 .chars()
                 .last()
@@ -158,13 +158,13 @@ impl Unescaper {
 
         // [0, 256), 16^2
         for i in 0..2 {
-            let c = self.chars.pop().ok_or(UnescapeError::IncompleteStr(i))?;
+            let c = self.chars.pop().ok_or(Error::IncompleteStr(i))?;
 
             byte.push(c);
         }
 
         Ok(u8::from_str_radix(&byte, 16)
-            .map_err(|e| UnescapeError::ParseIntError { source: e, pos: 0 })? as _)
+            .map_err(|e| Error::ParseInt { source: e, pos: 0 })? as _)
     }
 
     // pub fn unescape_octal(&mut self) -> Result<char> {}
@@ -174,7 +174,7 @@ impl Unescaper {
             if let Some(c) = self
                 .chars
                 .last()
-                .cloned()
+                .copied()
                 .filter(|c| c.is_digit(8))
                 .and_then(|_| self.chars.pop())
             {
@@ -197,11 +197,11 @@ impl Unescaper {
 
                 try_push_next(&mut octal);
             }
-            _ => Err(UnescapeError::InvalidChar { char: c, pos: 0 })?,
+            _ => Err(Error::InvalidChar { char: c, pos: 0 })?,
         }
 
         Ok(u8::from_str_radix(&octal, 8)
-            .map_err(|e| UnescapeError::ParseIntError { source: e, pos: 0 })? as _)
+            .map_err(|e| Error::ParseInt { source: e, pos: 0 })? as _)
     }
 }
 
@@ -210,10 +210,10 @@ pub fn unescape(s: impl AsRef<str>) -> Result<String> {
     Unescaper::new(s.as_ref()).unescape()
 }
 
-pub fn unescape_to_char(s: impl AsRef<str>) -> Result<char> {
+pub fn to_char(s: impl AsRef<str>) -> Result<char> {
     let s = unescape(s)?;
     s.parse().map_err(
-        |c: std::char::ParseCharError| UnescapeError::ParseCharError {
+        |c: std::char::ParseCharError| Error::ParseChar {
             kind: c.to_string(),
             pos: 0,
         },

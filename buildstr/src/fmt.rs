@@ -9,3 +9,10 @@ impl BuildStr for ::core::fmt::Alignment {
         }.to_string()
     }
 }
+
+impl BuildStr for::core::fmt::Arguments<'_>{
+    fn to_build_string(&self) -> String {
+      format!("::core::format_args!(\"{self}\")")
+    }
+  
+    }

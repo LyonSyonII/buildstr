@@ -193,7 +193,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
     let mut out = stringify! {
         /// Trait for getting a string representation of the builder of a type.
         ///
-        /// Supports all std types, arbitrary structs and enums.<br>
+        /// Supports all `std` types, arbitrary structs and enums.<br>
         /// Unions are *not* supported, you must implement `BuildStr` manually.
         ///
         /// Useful for macros that generate values at compile time, like parsers.
@@ -227,7 +227,7 @@ pub fn impl_buildstr(input: TokenStream) -> TokenStream {
             ///
             /// If you want a pretty output, check the [`Pretty`](crate::Pretty) trait.
             ///
-            /// If you want to get the TokenStream directly, use [`to_build_tokens`](Self::to_build_tokens).
+            /// If you want to get the `TokenStream` directly, use [`to_build_tokens`](Self::to_build_tokens).
             /// # Examples
             /// ```
             /// use buildstr::BuildStr;
@@ -619,7 +619,7 @@ fn borrow() {
 fn cell() {
     impl <T: BuildStr> BuildStr for ::core::cell::Cell<T> {
         fn to_build_string(&self) -> String {
-            let v = self.as_ptr() as *const T;
+            let v = self.as_ptr();
             // SAFETY: The pointer must be valid, as the cell is always initialized
             if let Some(v) = unsafe { v.as_ref() } {
                 format!("::core::cell::Cell::new({})", (&v).to_build_string())
@@ -650,7 +650,7 @@ fn cell() {
     // TODO: Needs testing
     impl <T: BuildStr> BuildStr for ::core::cell::UnsafeCell<T> {
         fn to_build_string(&self) -> String {
-            let v = self.get() as *const T;
+            let v = self.get();
             // SAFETY: The pointer must be valid, as the cell is always initialized
             if let Some(v) = unsafe { v.as_ref() } {
                 format!("::core::cell::UnsafeCell::new({})", v.to_build_string())
@@ -677,12 +677,12 @@ fn collections() {
             format!("::std::collections::BinaryHeap::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
     }
-    impl<K, V> BuildStr for ::std::collections::HashMap<K, V> where K: BuildStr, V: BuildStr {
+    impl<K, V, S> BuildStr for ::std::collections::HashMap<K, V, S> where K: BuildStr, V: BuildStr {
         fn to_build_string(&self) -> String {
             format!("::std::collections::HashMap::from_iter([{}])", buildstr::map_to_build_string!(self))
         }
     }
-    impl<T: BuildStr> BuildStr for ::std::collections::HashSet<T> {
+    impl<T: BuildStr, S> BuildStr for ::std::collections::HashSet<T, S> {
         fn to_build_string(&self) -> String {
             format!("::std::collections::HashSet::from_iter([{}])", buildstr::array_to_build_string!(self))
         }
@@ -716,11 +716,7 @@ fn ffi() {
 }
 
 fn fmt() {
-    impl BuildStr for ::core::fmt::Arguments<'_> {
-        fn to_build_string(&self) -> String {
-            format!("::core::format_args!(\"{}\")", self)
-        }
-    }
+
 }
 
 fn future() {
@@ -831,7 +827,7 @@ fn pin() {
     impl<T: Unpin + BuildStr + ::core::ops::Deref> BuildStr for ::std::pin::Pin<T> {
         fn to_build_string(&self) -> String {
             // SAFETY: ::std::pin::Pin<T> is repr(transparent), so we can safely downcast it
-            let ptr: &T = unsafe { ::std::mem::transmute(self) };
+            let ptr: &T = unsafe { &*(self as *const std::pin::Pin<T>).cast() };
             format!("::std::pin::Pin::new({})", ptr.to_build_string())
         }
     }

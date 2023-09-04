@@ -2,8 +2,10 @@ use crate::BuildStr;
 
 #[cfg(target_arch = "x86_64")]
 mod x86_64 {
+    #[allow(clippy::wildcard_imports)]
     use super::*;
 
+    #[allow(clippy::similar_names)]
     impl BuildStr for ::std::arch::x86_64::CpuidResult {
         fn to_build_string(&self) -> String {
             let eax = self.eax;
@@ -17,8 +19,10 @@ mod x86_64 {
 
 #[cfg(target_arch = "x86")]
 mod x86 {
+    #[allow(clippy::wildcard_imports)]
     use super::*;
 
+    #[allow(clippy::similar_names)]
     impl BuildStr for ::std::arch::x86::CpuidResult {
         fn to_build_string(&self) -> String {
             let eax = self.eax;
