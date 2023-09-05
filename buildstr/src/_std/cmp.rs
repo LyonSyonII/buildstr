@@ -6,6 +6,6 @@ impl BuildStr for ::core::cmp::Ordering {
             ::std::cmp::Ordering::Less => "::core::cmp::Ordering::Less",
             ::std::cmp::Ordering::Equal => "::core::cmp::Ordering::Equal",
             ::std::cmp::Ordering::Greater => "::core::cmp::Ordering::Greater",
-        }.to_string()
+        }.into()
     }
 }
