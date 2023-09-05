@@ -81,12 +81,25 @@ fn parse_char_error() {
 }
 
 #[test]
-fn tolowercase() {
+fn to_lowercase() {
     assert_eq!(
         ::std::primitive::char::to_lowercase('A').to_build_string(),
         "::std::primitive::char::to_lowercase('a')"
     );
-    // assert_eq!(
-    //     assert_eq!('İ'.to_lowercase().to_string(), "i\u{307}");
-    // )
+    assert_eq!(
+        'İ'.to_lowercase().to_build_string(),
+        "::std::primitive::char::to_lowercase('İ')"
+    )
+}
+
+#[test]
+fn to_uppercase() {
+    assert_eq!(
+        ::std::primitive::char::to_uppercase('a').to_build_string(),
+        "::std::primitive::char::to_uppercase('A')"
+    );
+    assert_eq!(
+        'ß'.to_uppercase().to_build_string(),
+        "::std::primitive::char::to_uppercase('ß')"
+    )
 }
