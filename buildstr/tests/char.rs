@@ -99,7 +99,11 @@ fn to_uppercase() {
         "::std::primitive::char::to_uppercase('A')"
     );
     assert_eq!(
-        'ß'.to_uppercase().to_build_string(),
+        ::std::primitive::char::to_uppercase('ß').to_build_string(),
         "::std::primitive::char::to_uppercase('ß')"
-    )
+    );
+    assert_eq!(
+        ::std::primitive::char::to_uppercase('山').to_build_string(),
+        "::std::primitive::char::to_uppercase('山')"
+    );
 }
