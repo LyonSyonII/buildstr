@@ -2,8 +2,8 @@ use buildstr::BuildStr;
 
 #[test]
 fn char() {
-    assert_eq!('c'.to_build_string(), "\'c\'");
-    assert_eq!('\t'.to_build_string(), "\'\\t\'");
+    assert_eq!('c'.to_build_string(), "'c'");
+    assert_eq!('\t'.to_build_string(), "'\\t'");
 }
 
 #[test]
@@ -106,4 +106,9 @@ fn to_uppercase() {
         ::std::primitive::char::to_uppercase('山').to_build_string(),
         "::std::primitive::char::to_uppercase('山')"
     );
+}
+
+#[test]
+fn try_from_char_error() {
+    assert_eq!(::std::primitive::u8::try_from('\u{f00}').unwrap_err().to_build_string(), "::std::primitive::u8::try_from('\\u{f00}').unwrap_err()")
 }

@@ -83,7 +83,7 @@ impl BuildStr for std::char::ToLowercase {
                 c.to_build_string()
             );
         }
-
+        
         // Based on `core::unicode::unicode_data::conversions::LOWERCASE_TABLE_MULTI`
         match s.as_str() {
             "i\u{307}" => "::std::primitive::char::to_lowercase('İ')".into(),
@@ -101,7 +101,8 @@ impl BuildStr for std::char::ToUppercase {
                 c.to_build_string()
             );
         }
-
+        
+        // Based on `core::unicode::unicode_data::conversions::UPPERCASE_TABLE_MULTI`
         let mut chars = self.clone().collect::<Vec<_>>();
         chars.resize(3, '\0');
         let i = UPPERCASE_TABLE.binary_search_by(|(v, _)| v.as_slice().cmp(chars.as_slice()))
@@ -109,6 +110,12 @@ impl BuildStr for std::char::ToUppercase {
 
         let c = UPPERCASE_TABLE[i].1.to_build_string();
         format!("::std::primitive::char::to_uppercase({c})")
+    }
+}
+
+impl BuildStr for std::char::TryFromCharError {
+    fn to_build_string(&self) -> String {
+        "::std::primitive::u8::try_from('\\u{f00}').unwrap_err()".into()
     }
 }
 
