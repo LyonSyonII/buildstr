@@ -16,6 +16,9 @@ If you have any issues with these types, consider implementing them yourself.
 - `std::collections::TryReserveError`
   Partially implemented, only the `TryReserveError::CapacityOverflow` case is handled.
 
+- `std::error::Error`
+  Only the `description` method is preserved, all other methods will not work as expected.
+
 - `core::fmt::Arguments<'_>`
   The `format_args!` macro is internal to the compiler, `buildstr` will convert the arguments to a formatted string and then call `format_args` with a literal.
 
