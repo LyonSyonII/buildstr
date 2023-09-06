@@ -1,14 +1,18 @@
 use crate::BuildStr;
 
-impl BuildStr for ::core::ffi::CStr {
+impl BuildStr for ::std::ffi::CStr {
     fn to_build_string(&self) -> String {
-        format!("::std::ffi::CStr::from_bytes_with_nul({}).unwrap()", self.to_bytes_with_nul().to_build_string())
+        format!(
+            "::std::ffi::CStr::from_bytes_with_nul({}).unwrap()",
+            self.to_bytes_with_nul().to_build_string()
+        )
     }
 }
 
 impl BuildStr for ::std::ffi::CString {
     fn to_build_string(&self) -> String {
-        format!("::std::ffi::CString::new({}).unwrap()", self.to_bytes_with_nul().to_build_string())
+        let b = buildstr::array_to_build_string!(self.to_bytes());
+        format!("::std::ffi::CString::new([{b}]).unwrap()")
     }
 }
 
@@ -26,12 +30,20 @@ impl BuildStr for ::std::ffi::OsString {
 
 impl BuildStr for std::ffi::FromBytesWithNulError {
     fn to_build_string(&self) -> String {
-        let s = self.to_string();
-        let s = match s.as_str() {
-            "data provided contains an interior nul byte" => "\0a",
-            "data provided is not nul terminated" => "",
-            _ => todo!("{s:?} case is not handled. Please, open an issue at https://github.com/lyonsyonii/buildstr.")
-        };
+        // 1. data provided contains an interior nul byte at byte pos X
+        // 2. data provided is not nul terminated
+        let s = self
+            .to_string()
+            .split_once("pos ")
+            .map(|(_, s)| format!("{}\0a", "a".repeat(s.parse().unwrap())))
+            .unwrap_or_default();
         format!("::std::ffi::CStr::from_bytes_with_nul(\"{s}\").unwrap_err()")
+    }
+}
+
+impl BuildStr for std::ffi::FromVecWithNulError {
+    fn to_build_string(&self) -> String {
+        let v = self.as_bytes().to_vec().to_build_string();
+        format!("::std::ffi::CString::from_vec_with_nul({v}).unwrap_err()")
     }
 }
