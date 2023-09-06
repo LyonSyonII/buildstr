@@ -1,8 +1,13 @@
 # Types not implemented
 The types listed here have no way to be built by themselves, and are therefore not implemented by the buildstr library, or are unstable at the moment.
 
+Trait objects are not yet implemented, except for `Debug` and `Display`.
+
 # Nonsensical
-- `core::mem::MaybeUninit<T>`  
+- `std::convert::Infallible`
+  As the type's description says, a value of this enum can never be constructed, so it makes no sense to implement it.
+  
+- `std::mem::MaybeUninit<T>`  
   There is no way to know if a MaybeUninit is initialized or not only with itself, so it makes no sense to implement it for all contexts.  
   If you have a struct with this type, implement `BuildStr` manually, checking if it's initialized or not.
 
