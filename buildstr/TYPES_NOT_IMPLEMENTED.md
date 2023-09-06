@@ -9,9 +9,10 @@ Trait objects are not yet implemented, except for `Debug` and `Display`.
 
 - `std::env::Args`
   The struct collects all arguments passed to the program, and all constructors are private.
-  
 - `std::env::ArgsOs`
   Same as `Args`.
+- `std::env::Vars`
+- `std::env::VarsOs`
   
 - `std::mem::MaybeUninit<T>`  
   There is no way to know if a MaybeUninit is initialized or not only with itself, so it makes no sense to implement it for all contexts.  
@@ -79,6 +80,7 @@ Trait objects are not yet implemented, except for `Debug` and `Display`.
 
 ## Iterator
 Building the iterator would need to consume the source, which is not possible with a `&self` reference.
+- `std::env::SplitPaths<'_>`
 - `std::error::Source<'_>`
 - `std::iter::*`
 - `std::net::Incoming<'_>`
