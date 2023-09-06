@@ -28,6 +28,8 @@ impls! {
         cmp,
         collections,
         convert,
+        default,
+        env,
         ffi,
         fmt,
         marker,

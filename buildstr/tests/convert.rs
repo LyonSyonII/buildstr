@@ -3,7 +3,7 @@ use buildstr::BuildStr;
 #[test]
 fn as_ref() {
     assert_eq!(
-        (&"" as &dyn ::std::convert::AsRef<str>).to_build_string(), 
+        (&"" as &dyn ::std::convert::AsRef<str>).to_build_string(),
         "&\"\" as &dyn ::std::convert::AsRef<str>"
     );
     assert_eq!(

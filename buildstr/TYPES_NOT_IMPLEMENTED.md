@@ -6,6 +6,12 @@ Trait objects are not yet implemented, except for `Debug` and `Display`.
 # Nonsensical
 - `std::convert::Infallible`
   As the type's description says, a value of this enum can never be constructed, so it makes no sense to implement it.
+
+- `std::env::Args`
+  The struct collects all arguments passed to the program, and all constructors are private.
+  
+- `std::env::ArgsOs`
+  Same as `Args`.
   
 - `std::mem::MaybeUninit<T>`  
   There is no way to know if a MaybeUninit is initialized or not only with itself, so it makes no sense to implement it for all contexts.  
@@ -81,6 +87,7 @@ Building the iterator would need to consume the source, which is not possible wi
 
 ## Unstable
 - `std::ascii::Char`
+- `std::convert::FloatToInt`
 - `std::cell::LazyCell<T>`
 - `std::cell::SyncUnsafeCell<T>`
 - `std::ffi::NonZero_c_XXX`
@@ -98,6 +105,17 @@ Building the iterator would need to consume the source, which is not possible wi
 - `std::ops::Yeet<T>`
 - `std::panic::BacktraceStyle`
 - `std::ptr::DynMetadata<T>`
+
+## Needs mutable
+These types need to be mutable to be built.
+- `&dyn std::convert::AsMut<T>`
+
+## Traits that can't be built into a trait object
+- `std::convert::From`
+- `std::convert::Into`
+- `std::convert::TryFrom`
+- `std::convert::TryInto`
+- `std::default::Default`
 
 ## Deprecated
 - `core::hash::SipHasher`
