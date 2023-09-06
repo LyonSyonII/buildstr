@@ -47,3 +47,17 @@ impl BuildStr for std::ffi::FromVecWithNulError {
         format!("::std::ffi::CString::from_vec_with_nul({v}).unwrap_err()")
     }
 }
+
+impl BuildStr for std::ffi::IntoStringError {
+    fn to_build_string(&self) -> String {
+        let s = self.clone().into_cstring().to_build_string();
+        format!("{s}.into_string().unwrap_err()")
+    }
+}
+
+impl BuildStr for std::ffi::NulError {
+    fn to_build_string(&self) -> String {
+        let v = buildstr::array_to_build_string!(self.clone().into_vec());
+        format!("::std::ffi::CString::new([{v}]).unwrap_err()")
+    }
+}

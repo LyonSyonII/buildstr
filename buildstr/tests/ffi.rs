@@ -73,3 +73,27 @@ fn from_vec_with_nul_error() {
         "::std::ffi::CString::from_vec_with_nul(::std::vec::Vec::from_iter([97u8,])).unwrap_err()"
     )
 }
+
+#[test]
+fn into_string_error() {
+    assert_eq!(
+        std::ffi::CString::new(vec![b'f', 0xff, b'o', b'o']).unwrap().into_string().unwrap_err().to_build_string(),
+        "::std::ffi::CString::new([102u8,255u8,111u8,111u8,]).unwrap().into_string().unwrap_err()"
+    );
+    assert_eq!(
+        ::std::ffi::CString::new([102u8,255u8,111u8,111u8,]).unwrap().into_string().unwrap_err().to_build_string(),
+        "::std::ffi::CString::new([102u8,255u8,111u8,111u8,]).unwrap().into_string().unwrap_err()"
+    );
+}
+
+#[test]
+fn nul_error() {
+    assert_eq!(
+        std::ffi::CString::new("f\0oo").unwrap_err().to_build_string(),
+        "::std::ffi::CString::new([102u8,0u8,111u8,111u8,]).unwrap_err()"
+    );
+    assert_eq!(
+        ::std::ffi::CString::new([102u8,0u8,111u8,111u8,]).unwrap_err().to_build_string(),
+        "::std::ffi::CString::new([102u8,0u8,111u8,111u8,]).unwrap_err()"
+    );
+}
