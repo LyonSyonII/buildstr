@@ -11,9 +11,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  test:
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v3
@@ -25,10 +29,10 @@ jobs:
             toolchain: nightly-2023-09-04
             components: rustfmt, clippy, miri
             override: true
-
+      
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: "true"
       
-      - name: Test
+      - name: Run tests
         run: cargo +nightly-2023-09-04 miri test --all-features
