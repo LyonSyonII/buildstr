@@ -65,7 +65,7 @@ impl BuildStr for std::ffi::NulError {
 impl BuildStr for std::ffi::c_void {
     fn to_build_string(&self) -> String {
         // SAFETY: std::ffi::c_void is repr(u8)
-        let n: u8 = unsafe{std::mem::transmute_copy(self) };
+        let n: u8 = unsafe { std::mem::transmute_copy(self) };
         format!("unsafe{{std::mem::transmute::<u8,::std::ffi::c_void>({n})}}")
     }
 }
