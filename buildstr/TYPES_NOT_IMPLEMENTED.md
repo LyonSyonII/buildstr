@@ -41,6 +41,13 @@ Trait objects are not yet implemented, except for `Debug` and `Display`.
 - `std::cell::BorrowMutError`
 - `std::cell::Ref<'_, T>`
 - `std::cell::RefMut<'_, T>`
+- `std::fmt::DebugList`
+- `std::fmt::DebugMap`
+- `std::fmt::DebugSet`
+- `std::fmt::DebugStruct`
+- `std::fmt::DebugTuple`
+- `std::fmt::Formatter`
+- `std::fmt::Write`
 
 - `std::future::PollFn<F>`  
   Can be trivially built with `std::future::poll_fn`, but the function cannot be obtained at runtime.
