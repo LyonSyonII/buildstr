@@ -30,6 +30,7 @@ impls! {
         convert,
         default,
         env,
+        error,
         ffi,
         fmt,
         marker,
