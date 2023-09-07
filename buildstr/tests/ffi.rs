@@ -86,6 +86,7 @@ fn into_string_error() {
     );
 }
 
+
 #[test]
 fn nul_error() {
     assert_eq!(
@@ -96,4 +97,13 @@ fn nul_error() {
         ::std::ffi::CString::new([102u8,0u8,111u8,111u8,]).unwrap_err().to_build_string(),
         "::std::ffi::CString::new([102u8,0u8,111u8,111u8,]).unwrap_err()"
     );
+}
+
+#[test]
+fn c_void() {
+    let void = unsafe { std::mem::transmute::<u8, std::ffi::c_void>(0u8) };
+    assert_eq!(
+        void.to_build_string(),
+        "unsafe{std::mem::transmute::<u8,::std::ffi::c_void>(0)}"
+    )
 }
