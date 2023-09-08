@@ -33,6 +33,7 @@ impls! {
         error,
         ffi,
         fmt,
+        fs,
         marker,
         net,
         num,

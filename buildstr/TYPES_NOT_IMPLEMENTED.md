@@ -49,6 +49,9 @@ Trait objects are not yet implemented, except for `Debug` and `Display`.
 - `std::fmt::Formatter`
 - `std::fmt::Write`
 
+- `std::fs::DirBuilder`
+  It only has one field `recursive`, but it's private.
+
 - `std::future::PollFn<F>`  
   Can be trivially built with `std::future::poll_fn`, but the function cannot be obtained at runtime.
 
@@ -103,6 +106,7 @@ Building the iterator would need to consume the source, which is not possible wi
 - `std::ffi::VaList<'_, '_>`
 - `std::ffi::VaListImpl<'_, '_>`
 - `std::ffi::c_void`
+- `std::fs::FileTimes`
 
 - `std::future::Ready<T>`  
   Can be trivially built with `std::future::ready`, but the value cannot be obtained at runtime until `Ready::into_inner()` is stable.
